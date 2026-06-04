@@ -4,44 +4,60 @@ export default function SpeedTyping({ vocabularyData, typingIdx, typingScore, ty
   const current = vocabularyData[typingIdx];
   if (!current) return null;
 
-  // Trạng thái gõ Đúng/Sai đổi màu linh hoạt
-  let inputBorder = "border-[#E9D5FF] bg-white text-[#5B21B6]";
-  if (typingStatus === 'correct') inputBorder = "border-[#34D399] bg-[#E8FCCF] text-[#065F46] animate-pulse";
-  if (typingStatus === 'wrong') inputBorder = "border-[#F87171] bg-[#FFE5EC] text-[#9D174D] animate-shake";
-
   return (
-    <div className="max-w-md mx-auto bg-[#FDF4FF] border-4 border-[#F5D0FE] p-6 rounded-3xl shadow-[0_8px_0_0_#F5D0FE] text-center space-y-6 animate-fade-in">
-      <div className="flex justify-between items-center">
-        <span className="text-xs font-black tracking-wider text-purple-600 bg-[#F3E8FF] px-3 py-1.5 rounded-full border border-[#E9D5FF]">
-          ⚡ SPEED TYPING
-        </span>
-        <span className="text-xs font-black tracking-wider text-fuchsia-600 bg-[#FDF4FF] px-3 py-1.5 rounded-full border border-[#F5D0FE]">
-          🏆 SCORE: {typingScore}
-        </span>
+    <div className="w-full max-w-4xl mx-auto border-[8px] border-[#FFC107] bg-white p-12 rounded-[32px] text-center space-y-6 transition-all duration-300">
+      
+      {/* Header Info */}
+      <div className="flex justify-center items-center space-x-2 text-xl font-bold text-gray-700">
+        <span>⚡ SPEED TYPING</span>
+        <span>🏆 SCORE: {typingScore}</span>
       </div>
 
-      <div className="py-4 bg-[#F5D0FE]/40 border-2 border-dashed border-[#E879F9] rounded-2xl">
-        <p className="text-xs text-fuchsia-500 font-black uppercase tracking-wider mb-1">請根據意思拼寫出正確英文單字</p>
-        <h3 className="text-3xl font-black text-[#701A75]">{current.meaningZh}</h3>
+      {/* Target Word Question Prompt */}
+      <div className="space-y-2">
+        <p className="text-gray-500 font-medium text-base">請根據意思拼寫出正確英文單字</p>
+        <h3 className="text-3xl font-bold text-gray-800 py-4">👉 {current.meaningZh}</h3>
       </div>
 
-      <form onSubmit={handleTypingSubmit} className="space-y-3">
+      {/* Input Form Fields */}
+      <form onSubmit={handleTypingSubmit} className="flex flex-col sm:flex-row items-center justify-center gap-4">
         <input
           type="text"
           value={typedInput}
           onChange={(e) => setTypedInput(e.target.value)}
           disabled={typingStatus === 'correct'}
           placeholder="在此輸入英文單字..."
-          className={`w-full p-4 rounded-xl border-4 text-center font-black text-lg focus:outline-none transition-all ${inputBorder}`}
+          className="w-full sm:w-80 p-3 rounded-xl border-2 border-gray-300 text-center font-semibold text-lg focus:outline-none"
         />
         <button
           type="submit"
           disabled={typingStatus === 'correct'}
-          className="w-full py-3.5 bg-[#D946EF] hover:bg-[#E879F9] border-b-4 border-[#A21CAF] active:translate-y-0.5 active:border-b-0 text-white font-black rounded-xl text-xs uppercase tracking-wider transition-all"
+          className="w-full sm:w-auto px-6 py-3 bg-gray-100 hover:bg-gray-200 border-2 border-gray-400 text-gray-800 font-bold rounded-xl text-base transition-all active:scale-95 flex items-center justify-center gap-2"
         >
-          送出答案 🚀
+          <span>送出答案</span>
+          <span>🚀</span>
         </button>
       </form>
+
+      {/* ================= DYNAMIC FEEDBACK BLOCKS ================= */}
+      {/* 1. Correct Answer Banner (Green) */}
+      {typingStatus === 'correct' && (
+        <div className="w-full mt-6 p-6 bg-[#DCFCE7] border-2 border-[#22C55E] rounded-2xl animate-fade-in">
+          <div className="text-2xl mb-1">🥳</div>
+          <p className="text-[#16A34A] font-black text-xl">太棒了，答對了！</p>
+          <p className="text-gray-700 font-bold mt-1 text-lg">正確答案是 : {current.word}</p>
+        </div>
+      )}
+
+      {/* 2. Incorrect Answer Banner (Red) */}
+      {typingStatus === 'wrong' && (
+        <div className="w-full mt-6 p-6 bg-[#FEE2E2] border-2 border-[#EF4444] rounded-2xl animate-shake">
+          <div className="text-2xl mb-1">😭</div>
+          <p className="text-[#DC2626] font-black text-xl">好可惜，答錯了！</p>
+          <p className="text-gray-700 font-bold mt-1 text-lg">正確答案是 : {current.word}</p>
+        </div>
+      )}
+      
     </div>
   );
 }

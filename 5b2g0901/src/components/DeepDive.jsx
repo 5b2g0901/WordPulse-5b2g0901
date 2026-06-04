@@ -62,7 +62,7 @@ export default function DeepDive({ diveIdx, vocabularyData, handleSpeak, getSent
       <div className="bg-[#FEFCE8] border-4 border-[#FEF08A] p-5 rounded-3xl shadow-[0_8px_0_0_#FEF08A] flex flex-col justify-between gap-4">
         <div>
           <h3 className="text-sm font-black text-[#854D0E] flex items-center gap-2 mb-3">
-            <span>📌</span> 個人筆記空間
+            <span>📌</span> 筆記空間
           </h3>
           <textarea
             value={activeNoteText}
@@ -72,7 +72,7 @@ export default function DeepDive({ diveIdx, vocabularyData, handleSpeak, getSent
           />
         </div>
         <button onClick={saveNote} className="w-full py-3 bg-[#EAB308] hover:bg-[#FACC15] border-b-4 border-[#A16207] active:translate-y-0.5 active:border-b-0 text-white font-black text-xs rounded-xl transition-all uppercase tracking-wider">
-          💾 儲存此單字筆記
+          💾 儲存
         </button>
       </div>
 
