@@ -3,6 +3,7 @@ import { vocabularyData } from './data/vocabulary';
 import DeepDive from './components/DeepDive';
 import SpeedTyping from './components/SpeedTyping';
 import BlockBlast from './components/BlockBlast';
+import ListeningQuiz from './components/ListeningQuiz';
 
 function App() {
   const [currentMode, setCurrentMode] = useState('quiz');
@@ -127,24 +128,23 @@ function App() {
   };
 
   return (
-    /* 🌈 THAY ĐỔI MÀU NỀN TOÀN BỘ PHÔNG NỀN: Đổi thành màu Hồng Tím Pastel ngọt ngào */
     <div 
       className="min-h-screen antialiased px-4 pb-20"
       style={{ 
         fontFamily: '"Fredoka", "Microsoft JhengHei", sans-serif',
-        backgroundColor: '#FFEBF0', // Màu hồng kẹo ngọt chủ đạo
+        backgroundColor: '#FFEBF0', 
         minHeight: '100vh',
         paddingTop: '20px'
       }}
     >
       
-      {/* THAY ĐỔI THANH TRÊN (HEADER): Viền bo tròn dày, nền Vàng Chanh hoạt hình */}
+      {/* HEADER BAR */}
       <header 
         className="max-w-5xl mx-auto py-4 px-6 flex flex-col md:flex-row justify-between items-center gap-4 mb-8"
         style={{
-          backgroundColor: '#FFF4D4', // Nền vàng tươi
+          backgroundColor: '#FFF4D4', 
           borderRadius: '24px',
-          border: '4px solid #FFC107', // Viền vàng đậm 3D phong cách game
+          border: '4px solid #FFC107', 
           boxShadow: '0 8px  #FFB300'
         }}
       >
@@ -172,16 +172,16 @@ function App() {
               WordPulse
             </h1>
             <p className="text-[11px] uppercase font-black tracking-widest" style={{ color: '#9C27B0' }}>
-              ZH-TW / EN 沉浸式學習空間
+              TW / EN 沉浸式學習空間
             </p>
           </div>
         </div>
 
-        {/* THANH ĐIỀU HƯỚNG MENU: Nền Xanh Mint dịu mắt phối với nút đa màu sắc */}
+        {/* MENU TABS */}
         <nav 
           className="flex flex-wrap justify-center gap-2 p-2 rounded-2xl"
           style={{
-            backgroundColor: '#E8FDF5', // Nền xanh mint nhạt
+            backgroundColor: '#E8FDF5', 
             border: '3px solid #A7F3D0'
           }}
         >
@@ -216,35 +216,31 @@ function App() {
         </nav>
       </header>
 
-      {/* Vùng hiển thị Nội dung chính */}
+      {/* MAIN CONTAINER */}
       <main className="max-w-5xl mx-auto" style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '32px', border: '4px solid #FBC02D', boxShadow: '0 10px 0 #FBC02D' }}>
+        
+        {/* 1. 深度探索 */}
         {currentMode === 'dive' && (
           <DeepDive diveIdx={diveIdx} vocabularyData={vocabularyData} handleSpeak={handleSpeak} getSentenceAnalysis={getSentenceAnalysis} activeNoteText={activeNoteText} setActiveNoteText={setActiveNoteText} saveNote={saveNote} setDiveIdx={setDiveIdx} />
         )}
 
-        {/* Thẻ từ */}
+        {/* 2. 單字卡 */}
         {currentMode === 'card' && (
           <div className="flex flex-col items-center justify-center py-6">
             <div onClick={() => setIsFlipped(!isFlipped)} className="w-full max-w-sm h-72 cursor-pointer perspective mb-6">
               <div className={`relative w-full h-full duration-300 transform-style preserve-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
-                
-                {/* Mặt trước */}
                 <div className="absolute inset-0 w-full h-full rounded-3xl p-8 flex flex-col justify-between items-center backface-hidden" style={{ backgroundColor: '#FFE5EC', border: '4px solid #FFB3C6', boxShadow: '0 8px #FFB3C6' }}>
                   <span className="text-xs font-black tracking-wider text-[#FF477E] bg-white px-2.5 py-1 rounded-full border border-[#FFB3C6]">正面 ✨</span>
                   <h3 className="text-4xl font-black text-[#FF0A54] tracking-wide">{vocabularyData[cardIdx]?.word}</h3>
                   <span className="text-[11px] bg-[#FFC6FF] text-[#7209B7] px-3 py-1.5 rounded-xl font-black border border-[#B5179E]">點擊翻面 🔄</span>
                 </div>
-
-                {/* Mặt sau */}
                 <div className="absolute inset-0 w-full h-full rounded-3xl p-8 flex flex-col justify-between items-center rotate-y-180 backface-hidden" style={{ backgroundColor: '#E8FCCF', border: '4px solid #C1F183', boxShadow: '0 8px #C1F183' }}>
                   <span className="text-xs font-black tracking-wider text-[#4B7314] bg-white px-2.5 py-1 rounded-full border border-[#C1F183]">背面 🧸</span>
                   <h4 className="text-2xl font-black text-[#385A09] text-center leading-snug">{vocabularyData[cardIdx]?.meaningZh}</h4>
                   <span className="text-[11px] bg-white text-[#4B7314] px-3 py-1.5 rounded-xl font-black border border-[#C1F183]">點擊翻面 🔄</span>
                 </div>
-
               </div>
             </div>
-            
             <div className="flex gap-4 items-center px-4 py-2 rounded-2xl" style={{ backgroundColor: '#FFF176', border: '2px solid #FBC02D', boxShadow: '0 4px #FBC02D' }}>
               <button onClick={() => { setIsFlipped(false); setCardIdx(p => Math.max(0, p - 1)); }} disabled={cardIdx === 0} className="w-16 h-10 rounded-xl bg-white border-2 border-b-4 border-gray-300 flex items-center justify-center font-black disabled:opacity-30 text-gray-700 active:translate-y-0.5">◀ 上一個</button>
               <span className="text-xs font-mono font-black text-gray-800 px-2">{cardIdx + 1} / {vocabularyData.length}</span>
@@ -253,7 +249,7 @@ function App() {
           </div>
         )}
 
-        {/* Thư viện từ */}
+        {/* 3. 單字庫 */}
         {currentMode === 'gallery' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {vocabularyData.map((v, i) => {
@@ -264,7 +260,6 @@ function App() {
                 { bg: '#FEF7E0', border: '#FCE8B2', text: '#B06000' }  
               ];
               const style = cardColors[i % cardColors.length];
-
               return (
                 <div key={v.id} className="border-4 rounded-2xl p-5 hover:scale-105 transition-transform duration-200 flex flex-col justify-between gap-4" style={{ backgroundColor: style.bg, borderColor: style.border, color: style.text, boxShadow: '0 6px rgba(0,0,0,0.05)' }}>
                   <div>
@@ -285,36 +280,28 @@ function App() {
           </div>
         )}
 
+        {/* 4. 拼字輸入 */}
         {currentMode === 'typing' && (
           <SpeedTyping vocabularyData={vocabularyData} typingIdx={typingIdx} typingScore={typingScore} typedInput={typedInput} setTypedInput={setTypedInput} typingStatus={typingStatus} handleTypingSubmit={handleTypingSubmit} />
         )}
 
-        {/* Luyện nghe */}
+        {/* 5. 聽力訓練 (Đã chuyển sang gọi component ListeningQuiz giúp nút 下一個 hoạt động) */}
         {currentMode === 'listening' && (
-          <div className="max-w-md mx-auto text-center p-6 rounded-3xl space-y-6" style={{ backgroundColor: '#FDF2F8', border: '4px solid #FBCFE8', boxShadow: '0 8px #FBCFE8' }}>
-            <div className="bg-[#FCE7F3] px-3 py-2 rounded-xl border-2 border-[#F9A8D4] inline-flex items-center gap-2">
-              <label className="text-[10px] text-pink-700 font-black uppercase tracking-wider">語速調節:</label>
-              <input type="range" min="0.5" max="1.5" step="0.1" value={speechRate} onChange={(e) => setSpeechRate(parseFloat(e.target.value))} className="accent-pink-600 cursor-pointer h-1" />
-              <span className="text-[10px] font-mono text-pink-600 font-black px-1.5 py-0.5 bg-white border border-pink-200 rounded-md">{speechRate}x</span>
-            </div>
-            
-            <div className="py-4">
-              <button onClick={() => handleSpeak(vocabularyData[listeningIdx]?.word)} className="w-20 h-20 bg-[#EC4899] hover:bg-[#F472B6] rounded-full border-b-4 border-[#BE185D] text-2xl active:translate-y-1 transition-all mb-4 shadow-md text-white">📢</button>
-              <h3 className="text-3xl font-black text-[#9D174D] tracking-wide">{vocabularyData[listeningIdx]?.word}</h3>
-            </div>
-            
-            <p className="text-sm text-pink-900 bg-white border-2 border-pink-100 p-4 rounded-xl italic cursor-pointer font-bold transition-colors hover:bg-pink-50" onClick={() => handleSpeak(vocabularyData[listeningIdx]?.example)}>
-              "{vocabularyData[listeningIdx]?.example}" 🔊
-            </p>
-          </div>
+          <ListeningQuiz 
+            vocabularyData={vocabularyData}
+            listeningIdx={listeningIdx}
+            setListeningIdx={setListeningIdx}
+            speechRate={speechRate}
+            setSpeechRate={setSpeechRate}
+            handleSpeak={handleSpeak}
+          />
         )}
 
-        {/* Trắc nghiệm */}
+        {/* 6. 核心測驗 */}
         {currentMode === 'quiz' && (
           <div className="max-w-md mx-auto pb-24">
             {!isQuizFinished ? (
               <div className="rounded-3xl p-6 relative" style={{ backgroundColor: '#FFFDF0', border: '4px solid #FDE68A', boxShadow: '0 8px #FDE68A' }}>
-                
                 <div className="flex justify-between items-center mb-6">
                   <span className="text-xs font-black tracking-wider text-pink-600 bg-pink-50 border-2 border-pink-200 px-3 py-1.5 rounded-full">
                     🎯 題目 {quizIdx + 1}
@@ -325,7 +312,7 @@ function App() {
                 </div>
 
                 <div className="mb-6 text-center py-4 bg-[#FEF3C7] border-2 border-[#FCD34D] rounded-2xl">
-                  <p className="text-xs text-amber-800 font-black uppercase tracking-wider mb-1">請問以下哪個是正確的英文單字？</p>
+                  <p className="text-xs text-amber-800 font-black uppercase tracking-wider mb-1">請問以下哪個is正確的英文單字？</p>
                   <h3 className="text-2xl font-black text-[#78350F]">👉 {vocabularyData[quizIdx]?.meaningZh}</h3>
                 </div>
 
@@ -367,7 +354,6 @@ function App() {
                   })}
                 </div>
 
-                {/* Thanh kết quả dưới đáy */}
                 {selectedAnswer !== null && (
                   <div className="fixed bottom-0 left-0 right-0 py-5 px-6 border-t-4 flex flex-col sm:flex-row justify-between items-center gap-4 z-50"
                     style={{
@@ -402,20 +388,20 @@ function App() {
                     </button>
                   </div>
                 )}
-
               </div>
             ) : (
               <div className="bg-[#EEF2F6] border-4 border-[#CBD5E1] rounded-3xl p-8 text-center shadow-[0_8px_0_0_#CBD5E1] space-y-4">
                 <div className="text-5xl">🏆</div>
                 <h3 className="text-2xl font-black text-[#1E293B]">✨ 恭喜完成本次測驗！ ✨</h3>
                 <p className="text-sm font-bold text-gray-500 uppercase tracking-wider">您的最終得分</p>
-                <span className="text-5xl font-black text-[#4F46E5] block py-2">{quizScore} / 100</span>
+                <span classNanpm run dev me="text-5xl font-black text-[#4F46E5] block py-2">{quizScore} / 100</span>
                 <button onClick={() => { setQuizIdx(0); setQuizScore(0); setIsQuizFinished(false); setSelectedAnswer(null); }} className="w-full py-3.5 bg-[#4F46E5] border-b-4 border-[#3730A3] text-white font-black rounded-xl text-xs uppercase tracking-wider active:translate-y-0.5 transition-all">重新挑戰 🚀</button>
               </div>
             )}
           </div>
         )}
 
+        {/* 7. 連連看 */}
         {currentMode === 'game' && (
           <BlockBlast gameScore={gameScore} initBlockGame={initBlockGame} gameBlocks={gameBlocks} selectedBlock={selectedBlock} shakeBlockId={shakeBlockId} handleBlockClick={handleBlockClick} />
         )}
