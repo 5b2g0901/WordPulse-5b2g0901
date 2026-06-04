@@ -4,9 +4,11 @@ import DeepDive from './components/DeepDive';
 import SpeedTyping from './components/SpeedTyping';
 import BlockBlast from './components/BlockBlast';
 import ListeningQuiz from './components/ListeningQuiz';
+import UserProfile from './components/UserProfile';
+import CourseSyllabus from './components/CourseSyllabus';
 
 function App() {
-  const [currentMode, setCurrentMode] = useState('quiz');
+  const [currentMode, setCurrentMode] = useState('syllabus'); 
   const [userNotes, setUserNotes] = useState({});
   const [activeNoteText, setActiveNoteText] = useState('');
 
@@ -21,11 +23,15 @@ function App() {
   const [listeningIdx, setListeningIdx] = useState(0);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [speechRate, setSpeechRate] = useState(0.85);
+  
+  // --- STATE CORE QUIZ ---
   const [quizIdx, setQuizIdx] = useState(0);
   const [quizScore, setQuizScore] = useState(0);
   const [quizOptions, setQuizOptions] = useState([]);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [isQuizFinished, setIsQuizFinished] = useState(false);
+  
+  // --- STATE GAME ---
   const [gameBlocks, setGameBlocks] = useState([]);
   const [selectedBlock, setSelectedBlock] = useState(null);
   const [gameScore, setGameScore] = useState(0);
@@ -53,6 +59,22 @@ function App() {
       }
     }
   }, [quizIdx, currentMode, isQuizFinished]);
+
+  const handleSelectQuizAnswer = (optionWord) => {
+    if (selectedAnswer !== null) return; 
+    setSelectedAnswer(optionWord);
+    const isCorrect = optionWord === vocabularyData[quizIdx]?.word;
+    if (isCorrect) {
+      setQuizScore(prev => prev + 10);
+    }
+    setTimeout(() => {
+      if (quizIdx < vocabularyData.length - 1) {
+        setQuizIdx(prev => prev + 1);
+      } else {
+        setIsQuizFinished(true);
+      }
+    }, 1200);
+  };
 
   useEffect(() => {
     if (currentMode === 'game') { initBlockGame(); }
@@ -131,47 +153,106 @@ function App() {
     <div 
       className="min-h-screen antialiased px-4 pb-20"
       style={{ 
-        fontFamily: '"Fredoka", "Microsoft JhengHei", sans-serif',
-        backgroundColor: '#FFEBF0', 
+        fontFamily: '"Brandon Grotesque", "Helvetica Neue", Arial, sans-serif',
+        backgroundColor: '#E0F2FE', 
         minHeight: '100vh',
         paddingTop: '20px'
       }}
     >
       
+      {/* KHU VỰC CSS FIX TRIỆT ĐỂ: NỀN XANH CHỮ TRẮNG, NỀN TRẮNG CHỮ ĐEN MỜI XEM QUA */}
+      <style>{`
+        /* Đảm bảo toàn bộ phông chữ thống nhất */
+        *, body, div, h1, h2, h3, h4, h5, h6, p, span, label, button, input, textarea, li, strong {
+          font-family: "Brandon Grotesque", "Helvetica Neue", Arial, sans-serif !important;
+        }
+
+        /* Quy tắc 1: Trong vùng container nền xanh (Mặc định tất cả các text là màu trắng tinh) */
+        .main-blue-container,
+        .main-blue-container h1,
+        .main-blue-container h2,
+        .main-blue-container h3,
+        .main-blue-container h4,
+        .main-blue-container h5,
+        .main-blue-container p,
+        .main-blue-container span,
+        .main-blue-container label,
+        .main-blue-container div:not(.bg-white):not([style*="background-color: white"]) {
+          color: #FFFFFF !important;
+        }
+
+        .main-blue-container .sub-light-label {
+          color: #BAE6FD !important;
+          font-weight: 800;
+        }
+
+        /* Quy tắc 2: TẤT CẢ CÁC VÙNG NỀN TRẮNG (CÁC KHỐI BÊN DƯỚI) THÌ CHỮ PHẢI MÀU ĐEN */
+        /* Bao gồm: Toàn bộ thẻ con của .bg-white, thẻ Syllabus, các thẻ li, p, span bên trong nó */
+        .bg-white,
+        .bg-white *,
+        [style*="background-color: white"] *,
+        [style*="background-color: rgb(255, 255, 255)"] *,
+        .course-syllabus-wrapper .bg-white,
+        .course-syllabus-wrapper .bg-white *,
+        .gallery-card,
+        .gallery-card *,
+        .quiz-question-box,
+        .quiz-question-box * {
+          color: #1E293B !important; /* Chữ màu đen xám đậm thanh lịch, cực nét */
+        }
+
+        /* Đảm bảo tiêu đề các tuần học hoặc từ khóa có màu đen tuyền trên nền trắng */
+        .course-syllabus-wrapper .bg-white h1,
+        .course-syllabus-wrapper .bg-white h2,
+        .course-syllabus-wrapper .bg-white h3,
+        .course-syllabus-wrapper .bg-white h4,
+        .course-syllabus-wrapper .bg-white p,
+        .course-syllabus-wrapper .bg-white li,
+        .course-syllabus-wrapper .bg-white span,
+        .course-syllabus-wrapper .bg-white strong {
+          color: #0F172A !important;
+        }
+
+        /* Nút lựa chọn của game连连看 nằm trên nền trắng */
+        .game-block-fix button {
+          background-color: #FFFFFF !important;
+          color: #0369A1 !important; 
+          font-weight: 900 !important;
+          border: 2px solid #38BDF8 !important;
+        }
+
+        .quiz-option-btn-default {
+          color: #FFFFFF !important; 
+        }
+      `}</style>
+      
       {/* HEADER BAR */}
       <header 
         className="max-w-5xl mx-auto py-4 px-6 flex flex-col md:flex-row justify-between items-center gap-4 mb-8"
         style={{
-          backgroundColor: '#FFF4D4', 
+          backgroundColor: '#0284C7', 
           borderRadius: '24px',
-          border: '4px solid #FFC107', 
-          boxShadow: '0 8px  #FFB300'
+          border: '4px solid #0EA5E9', 
+          boxShadow: '0 8px #0369A1',
+          color: '#FFFFFF'
         }}
       >
         <div className="flex items-center gap-3">
           <div 
             className="w-12 h-12 flex items-center justify-center text-2xl animate-bounce"
             style={{
-              backgroundColor: '#FF6B8B',
+              backgroundColor: '#38BDF8',
               borderRadius: '16px',
-              borderBottom: '4px solid #D84B6B'
+              borderBottom: '4px solid #0284C7'
             }}
           >
             🦊
           </div>
           <div>
-            <h1 
-              className="text-3xl font-black tracking-wider"
-              style={{
-                background: 'linear-gradient(to right, #FF477E, #3A86FF, #00F5D4)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                fontWeight: '900'
-              }}
-            >
+            <h1 className="text-3xl font-black tracking-wider text-white" style={{ fontWeight: '900', color: '#FFFFFF' }}>
               WordPulse
             </h1>
-            <p className="text-[11px] uppercase font-black tracking-widest" style={{ color: '#9C27B0' }}>
+            <p className="text-[11px] uppercase font-black tracking-widest text-[#E0F2FE]">
               TW / EN 沉浸式學習空間
             </p>
           </div>
@@ -181,18 +262,20 @@ function App() {
         <nav 
           className="flex flex-wrap justify-center gap-2 p-2 rounded-2xl"
           style={{
-            backgroundColor: '#E8FDF5', 
-            border: '3px solid #A7F3D0'
+            backgroundColor: '#0369A1', 
+            border: '3px solid #0EA5E9'
           }}
         >
           {[
-            { id: 'dive', label: '🚀 深度探索', activeBg: '#FF477E', border: '#D81B60' },
-            { id: 'card', label: '📇 單字卡', activeBg: '#3A86FF', border: '#1D4ED8' },
-            { id: 'gallery', label: '🖼️ 單字庫', activeBg: '#20BF55', border: '#1B8A3F' },
-            { id: 'typing', label: '⌨️ 拼字輸入', activeBg: '#F15BB5', border: '#C2185B' },
-            { id: 'listening', label: '🎧 聽力訓練', activeBg: '#9B5DE5', border: '#6A1B9A' },
-            { id: 'quiz', label: '🧠 核心測驗', activeBg: '#FF9F1C', border: '#E65100' },
-            { id: 'game', label: '🧩 連連看', activeBg: '#00F5D4', border: '#00B4D8' }
+            { id: 'dive', label: '🚀 深度探索' },
+            { id: 'card', label: '📇 單字卡' },
+            { id: 'gallery', label: '🖼️ 單字庫' },
+            { id: 'typing', label: '⌨️ 拼字輸入' },
+            { id: 'listening', label: '🎧 聽力訓練' },
+            { id: 'quiz', label: '🧠 核心測驗' },
+            { id: 'game', label: '🧩 連連看' },
+            { id: 'profile', label: '👤 個人簡介' },
+            { id: 'syllabus', label: '📚 本學期課程' }
           ].map(nav => {
             const isActive = currentMode === nav.id;
             return (
@@ -201,10 +284,10 @@ function App() {
                 onClick={() => { setCurrentMode(nav.id); setIsFlipped(false); }} 
                 className="px-3 py-2 rounded-xl text-xs font-black uppercase transition-all"
                 style={{
-                  backgroundColor: isActive ? nav.activeBg : '#FFFFFF',
-                  color: isActive ? '#FFFFFF' : '#4A5568',
-                  border: isActive ? `2px solid ${nav.border}` : '2px solid #CBD5E1',
-                  borderBottom: isActive ? `5px solid ${nav.border}` : '4px solid #94A3B8',
+                  backgroundColor: isActive ? '#FFFFFF' : '#0284C7',
+                  color: isActive ? '#0369A1' : '#FFFFFF', 
+                  border: isActive ? '2px solid #38BDF8' : '2px solid #0284C7',
+                  borderBottom: isActive ? '5px solid #38BDF8' : '4px solid #0369A1',
                   transform: isActive ? 'translateY(1px)' : 'none',
                   cursor: 'pointer'
                 }}
@@ -216,104 +299,228 @@ function App() {
         </nav>
       </header>
 
-      {/* MAIN CONTAINER */}
-      <main className="max-w-5xl mx-auto" style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '32px', border: '4px solid #FBC02D', boxShadow: '0 10px 0 #FBC02D' }}>
+      {/* MAIN BLUE CONTAINER */}
+      <main 
+        className="max-w-5xl mx-auto main-blue-container" 
+        style={{ 
+          backgroundColor: '#0284C7', 
+          padding: '32px', 
+          borderRadius: '32px', 
+          border: '4px solid #38BDF8', 
+          boxShadow: '0 10px 0 #0369A1' 
+        }}
+      >
         
-        {/* 1. 深度探索 */}
+        {/* 1. 🚀 深度探索 */}
         {currentMode === 'dive' && (
-          <DeepDive diveIdx={diveIdx} vocabularyData={vocabularyData} handleSpeak={handleSpeak} getSentenceAnalysis={getSentenceAnalysis} activeNoteText={activeNoteText} setActiveNoteText={setActiveNoteText} saveNote={saveNote} setDiveIdx={setDiveIdx} />
+          <div className="space-y-6 text-center">
+            <div>
+              <span className="sub-light-label block text-sm uppercase tracking-widest mb-1">Current Word</span>
+              <h2 className="text-5xl font-black tracking-wide text-white">{vocabularyData[diveIdx]?.word}</h2>
+            </div>
+            
+            <div className="py-2">
+              <button onClick={() => handleSpeak(vocabularyData[diveIdx]?.word)} className="p-3 bg-[#0EA5E9] border-2 border-[#7DD3FC] rounded-full hover:scale-110 transition-transform">🔊</button>
+            </div>
+
+            <hr className="border-sky-400/40 my-4" />
+
+            <div>
+              <span className="sub-light-label block text-sm mb-1">中文釋義</span>
+              <p className="text-2xl font-bold text-white">{vocabularyData[diveIdx]?.meaningZh}</p>
+            </div>
+
+            <div>
+              <span className="sub-light-label block text-sm mb-1">情境例句</span>
+              <p className="text-lg italic text-sky-100 px-6 max-w-2xl mx-auto">"{vocabularyData[diveIdx]?.example}"</p>
+            </div>
+
+            <div className="flex justify-center gap-6">
+              <div>
+                <span className="sub-light-label block text-xs mb-1">詞性標籤</span>
+                <span className="inline-block bg-sky-500/50 px-3 py-1 rounded-xl text-xs font-bold border border-sky-300">🏷️ {getSentenceAnalysis(vocabularyData[diveIdx]?.word).grammar}</span>
+              </div>
+              <div>
+                <span className="sub-light-label block text-xs mb-1">推薦句型</span>
+                <span className="inline-block bg-sky-500/50 px-3 py-1 rounded-xl text-xs font-bold border border-sky-300">💡 {getSentenceAnalysis(vocabularyData[diveIdx]?.word).structures[0]}</span>
+              </div>
+            </div>
+
+            <div className="flex gap-4 items-center justify-center pt-4">
+              <button onClick={() => setDiveIdx(p => Math.max(0, p - 1))} disabled={diveIdx === 0} className="px-4 py-2 bg-white text-slate-900 border-2 rounded-xl text-xs font-black disabled:opacity-30">◀ 上一個</button>
+              <span className="font-mono font-black text-white">{diveIdx + 1} / {vocabularyData.length}</span>
+              <button onClick={() => setDiveIdx(p => Math.min(vocabularyData.length - 1, p + 1))} disabled={diveIdx === vocabularyData.length - 1} className="px-4 py-2 bg-white text-slate-900 border-2 rounded-xl text-xs font-black disabled:opacity-30">下一個 ▶</button>
+            </div>
+
+            <div className="max-w-md mx-auto pt-4 text-left">
+              <label className="sub-light-label block text-xs mb-1">📌 筆記空間</label>
+              <textarea value={activeNoteText} onChange={(e) => setActiveNoteText(e.target.value)} placeholder="在此輸入您對該單字的記憶聯想、補充筆記..." className="w-full p-3 rounded-xl bg-white border-2 border-sky-300 text-slate-900 text-sm focus:outline-none" rows={3} />
+              <button onClick={saveNote} className="mt-2 w-full py-2 bg-emerald-500 border-b-4 border-emerald-700 text-white font-black text-xs rounded-xl uppercase tracking-wider active:translate-y-0.5 transition-all">💾 儲存筆記</button>
+            </div>
+          </div>
         )}
 
-        {/* 2. 單字卡 */}
+        {/* 2. 📇 單字卡 */}
         {currentMode === 'card' && (
           <div className="flex flex-col items-center justify-center py-6">
             <div onClick={() => setIsFlipped(!isFlipped)} className="w-full max-w-sm h-72 cursor-pointer perspective mb-6">
               <div className={`relative w-full h-full duration-300 transform-style preserve-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
-                <div className="absolute inset-0 w-full h-full rounded-3xl p-8 flex flex-col justify-between items-center backface-hidden" style={{ backgroundColor: '#FFE5EC', border: '4px solid #FFB3C6', boxShadow: '0 8px #FFB3C6' }}>
-                  <span className="text-xs font-black tracking-wider text-[#FF477E] bg-white px-2.5 py-1 rounded-full border border-[#FFB3C6]">正面 ✨</span>
-                  <h3 className="text-4xl font-black text-[#FF0A54] tracking-wide">{vocabularyData[cardIdx]?.word}</h3>
-                  <span className="text-[11px] bg-[#FFC6FF] text-[#7209B7] px-3 py-1.5 rounded-xl font-black border border-[#B5179E]">點擊翻面 🔄</span>
+                <div className="absolute inset-0 w-full h-full rounded-3xl p-8 flex flex-col justify-between items-center backface-hidden" style={{ backgroundColor: '#0369A1', border: '4px solid #38BDF8', boxShadow: '0 8px #38BDF8' }}>
+                  <span className="text-xs font-black tracking-wider bg-[#0284C7] px-2.5 py-1 rounded-full border border-[#38BDF8] text-white">正面 ✨</span>
+                  <h3 className="text-4xl font-black tracking-wide text-white"> {vocabularyData[cardIdx]?.word}</h3>
+                  <span className="text-[11px] bg-white text-[#0369A1] px-3 py-1.5 rounded-xl font-black border border-[#38BDF8]">點擊翻面 🔄</span>
                 </div>
-                <div className="absolute inset-0 w-full h-full rounded-3xl p-8 flex flex-col justify-between items-center rotate-y-180 backface-hidden" style={{ backgroundColor: '#E8FCCF', border: '4px solid #C1F183', boxShadow: '0 8px #C1F183' }}>
-                  <span className="text-xs font-black tracking-wider text-[#4B7314] bg-white px-2.5 py-1 rounded-full border border-[#C1F183]">背面 🧸</span>
-                  <h4 className="text-2xl font-black text-[#385A09] text-center leading-snug">{vocabularyData[cardIdx]?.meaningZh}</h4>
-                  <span className="text-[11px] bg-white text-[#4B7314] px-3 py-1.5 rounded-xl font-black border border-[#C1F183]">點擊翻面 🔄</span>
+                <div className="absolute inset-0 w-full h-full rounded-3xl p-8 flex flex-col justify-between items-center rotate-y-180 backface-hidden" style={{ backgroundColor: '#0EA5E9', border: '4px solid #BAE6FD', boxShadow: '0 8px #BAE6FD' }}>
+                  <span className="text-xs font-black tracking-wider bg-[#0284C7] px-2.5 py-1 rounded-full border border-[#BAE6FD] text-white">背面 🧸</span>
+                  <h4 className="text-2xl font-black text-center leading-snug text-white">{vocabularyData[cardIdx]?.meaningZh}</h4>
+                  <span className="text-[11px] bg-white text-[#0EA5E9] px-3 py-1.5 rounded-xl font-black border border-[#BAE6FD]">點擊翻面 🔄</span>
                 </div>
               </div>
             </div>
-            <div className="flex gap-4 items-center px-4 py-2 rounded-2xl" style={{ backgroundColor: '#FFF176', border: '2px solid #FBC02D', boxShadow: '0 4px #FBC02D' }}>
-              <button onClick={() => { setIsFlipped(false); setCardIdx(p => Math.max(0, p - 1)); }} disabled={cardIdx === 0} className="w-16 h-10 rounded-xl bg-white border-2 border-b-4 border-gray-300 flex items-center justify-center font-black disabled:opacity-30 text-gray-700 active:translate-y-0.5">◀ 上一個</button>
-              <span className="text-xs font-mono font-black text-gray-800 px-2">{cardIdx + 1} / {vocabularyData.length}</span>
-              <button onClick={() => { setIsFlipped(false); setCardIdx(p => Math.min(vocabularyData.length - 1, p + 1)); }} disabled={cardIdx === vocabularyData.length - 1} className="w-16 h-10 rounded-xl bg-white border-2 border-b-4 border-gray-300 flex items-center justify-center font-black disabled:opacity-30 text-gray-700 active:translate-y-0.5">下一個 ▶</button>
+            <div className="flex gap-4 items-center px-4 py-2 rounded-2xl" style={{ backgroundColor: '#0369A1', border: '2px solid #38BDF8' }}>
+              <button onClick={() => { setIsFlipped(false); setCardIdx(p => Math.max(0, p - 1)); }} disabled={cardIdx === 0} className="px-4 py-2 rounded-xl bg-white border-2 text-slate-900 font-black disabled:opacity-30">◀ 上一個</button>
+              <span className="text-xs font-mono font-black px-2 text-white">{cardIdx + 1} / {vocabularyData.length}</span>
+              <button onClick={() => { setIsFlipped(false); setCardIdx(p => Math.min(vocabularyData.length - 1, p + 1)); }} disabled={cardIdx === vocabularyData.length - 1} className="px-4 py-2 rounded-xl bg-white border-2 text-slate-900 font-black disabled:opacity-30">下一個 ▶</button>
             </div>
           </div>
         )}
 
-        {/* 3. 單字庫 */}
-        {currentMode === 'gallery' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {vocabularyData.map((v, i) => {
-              const cardColors = [
-                { bg: '#FFECEF', border: '#FFC2CD', text: '#CC2B52' }, 
-                { bg: '#E6F4EA', border: '#B7E1CD', text: '#137333' }, 
-                { bg: '#E8F0FE', border: '#C2D7FA', text: '#1A73E8' }, 
-                { bg: '#FEF7E0', border: '#FCE8B2', text: '#B06000' }  
-              ];
-              const style = cardColors[i % cardColors.length];
-              return (
-                <div key={v.id} className="border-4 rounded-2xl p-5 hover:scale-105 transition-transform duration-200 flex flex-col justify-between gap-4" style={{ backgroundColor: style.bg, borderColor: style.border, color: style.text, boxShadow: '0 6px rgba(0,0,0,0.05)' }}>
-                  <div>
-                    <h4 className="text-2xl font-black tracking-wide mb-1">{v.word}</h4>
-                    <p className="text-xs font-black inline-block bg-white/70 border border-current px-2.5 py-1 rounded-lg mb-3">🍬 {v.meaningZh}</p>
-                    {userNotes[v.id] && (
-                      <div className="mb-3 px-3 py-2 bg-yellow-100 border-2 border-yellow-300 text-xs text-yellow-800 font-bold rounded-xl truncate">
-                        📌 筆記: {userNotes[v.id]}
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-xs opacity-90 bg-white/50 border border-current/10 p-3 rounded-xl italic leading-relaxed">
-                    "{v.example}"
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        {/* 3. 🖼️ 單字庫 */}
+{currentMode === 'gallery' && (
+  <div className="max-w-4xl mx-auto">
+    {vocabularyData.map((v, index) => (
+      <div key={v.id}>
+        
+        <div className="py-8 text-center">
+          
+          <h3
+            className="text-3xl font-black mb-4"
+            style={{ color: '#FFFFFF' }}
+          >
+            {v.word}
+          </h3>
 
-        {/* 4. 拼字輸入 */}
-        {currentMode === 'typing' && (
-          <SpeedTyping vocabularyData={vocabularyData} typingIdx={typingIdx} typingScore={typingScore} typedInput={typedInput} setTypedInput={setTypedInput} typingStatus={typingStatus} handleTypingSubmit={handleTypingSubmit} />
-        )}
+          <p
+            className="text-xl mb-4"
+            style={{ color: '#E0F2FE' }}
+          >
+            {v.meaningZh}
+          </p>
 
-        {/* 5. 聽力訓練 (Đã chuyển sang gọi component ListeningQuiz giúp nút 下一個 hoạt động) */}
-        {currentMode === 'listening' && (
-          <ListeningQuiz 
-            vocabularyData={vocabularyData}
-            listeningIdx={listeningIdx}
-            setListeningIdx={setListeningIdx}
-            speechRate={speechRate}
-            setSpeechRate={setSpeechRate}
-            handleSpeak={handleSpeak}
+          <p
+            className="italic text-lg mb-5 px-4"
+            style={{ color: '#FFFFFF' }}
+          >
+            "{v.example}"
+          </p>
+
+          <button
+            onClick={() => handleSpeak(v.word)}
+            className="px-4 py-2 rounded-lg font-bold"
+            style={{
+              backgroundColor: '#FFFFFF',
+              color: '#0369A1'
+            }}
+          >
+            🔊 發音
+          </button>
+
+          {userNotes[v.id] && (
+            <div
+              className="mt-4 p-3 rounded-xl"
+              style={{
+                backgroundColor: '#FEF3C7',
+                color: '#92400E'
+              }}
+            >
+              📌 {userNotes[v.id]}
+            </div>
+          )}
+        </div>
+
+        {index !== vocabularyData.length - 1 && (
+          <hr
+            style={{
+              border: 'none',
+              height: '2px',
+              backgroundColor: '#7DD3FC',
+              width: '100%'
+            }}
           />
         )}
 
-        {/* 6. 核心測驗 */}
+      </div>
+    ))}
+  </div>
+)}
+
+        {/* 4. ⌨️ 拼字輸入 */}
+        {currentMode === 'typing' && (
+          <div className="max-w-md mx-auto text-center space-y-6">
+            <div>
+              <span className="sub-light-label block text-xs uppercase tracking-widest mb-1">⚡ Speed Typing 🔥 Score: {typingScore}</span>
+              <p className="text-sm font-bold text-sky-200">請根據意思拼寫出正確英文單字</p>
+            </div>
+            <h3 className="text-3xl font-black text-white">👉 {vocabularyData[typingIdx]?.meaningZh}</h3>
+            
+            <form onSubmit={handleTypingSubmit} className="space-y-4">
+              <input type="text" value={typedInput} onChange={(e) => setTypedInput(e.target.value)} placeholder="在此輸入英文單字..." className="w-full p-4 rounded-xl bg-white text-slate-900 text-center font-bold text-lg border-4 border-sky-300 focus:outline-none" />
+              <button type="submit" className="w-full py-3 bg-white text-sky-800 border-2 border-b-4 font-black rounded-xl text-xs uppercase">送出答案 🚀</button>
+            </form>
+            {typingStatus === 'correct' && <p className="text-emerald-400 font-black animate-bounce">🎉 太棒了，正確！</p>}
+            {typingStatus === 'wrong' && <p className="text-rose-400 font-black animate-shake">❌ 答錯了，再試一次！</p>}
+          </div>
+        )}
+
+        {/* 5. 🎧 聽力訓練 */}
+        {currentMode === 'listening' && (
+          <div className="max-w-md mx-auto text-center space-y-6">
+            <div className="flex items-center justify-center gap-2">
+              <span className="sub-light-label text-sm">語速調節:</span>
+              <input type="range" min="0.5" max="1.5" step="0.05" value={speechRate} onChange={(e) => setSpeechRate(parseFloat(e.target.value))} className="w-32 h-2 bg-sky-600 rounded-lg appearance-none cursor-pointer" />
+              <span className="text-xs font-mono bg-sky-900 px-2 py-0.5 rounded text-white">{speechRate}x</span>
+            </div>
+            
+            <div className="bg-sky-900/40 p-4 rounded-xl border border-sky-400/30 flex items-center justify-center gap-2">
+              <span className="text-xs font-bold text-sky-200">📋 切換單字:</span>
+              <select value={listeningIdx} onChange={(e) => setListeningIdx(parseInt(e.target.value))} className="bg-white text-slate-900 text-xs font-bold p-1.5 rounded-lg border-2 border-sky-300">
+                {vocabularyData.map((v, idx) => (
+                  <option key={v.id} value={idx}>{idx + 1}. {v.word}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="py-4">
+              <button onClick={() => handleSpeak(vocabularyData[listeningIdx]?.word)} className={`w-20 h-20 text-3xl bg-white border-4 border-sky-300 rounded-full flex items-center justify-center shadow-lg transform active:scale-95 transition-transform ${isSpeaking ? 'animate-ping' : ''}`}>📢</button>
+            </div>
+
+            <h3 className="text-3xl font-black text-white tracking-wide">{vocabularyData[listeningIdx]?.word}</h3>
+
+            <div className="flex gap-4 items-center justify-center pt-2">
+              <button onClick={() => setListeningIdx(p => Math.max(0, p - 1))} disabled={listeningIdx === 0} className="px-4 py-2 bg-white text-slate-900 border-2 rounded-xl text-xs font-black disabled:opacity-30">◀ 上一個</button>
+              <span className="font-mono font-black text-white">{listeningIdx + 1} / {vocabularyData.length}</span>
+              <button onClick={() => setListeningIdx(p => Math.min(vocabularyData.length - 1, p + 1))} disabled={listeningIdx === vocabularyData.length - 1} className="px-4 py-2 bg-white text-slate-900 border-2 rounded-xl text-xs font-black disabled:opacity-30">下一個 ▶</button>
+            </div>
+          </div>
+        )}
+
+        {/* 6. 🧠 核心測驗 */}
         {currentMode === 'quiz' && (
-          <div className="max-w-md mx-auto pb-24">
+          <div className="max-w-md mx-auto">
             {!isQuizFinished ? (
-              <div className="rounded-3xl p-6 relative" style={{ backgroundColor: '#FFFDF0', border: '4px solid #FDE68A', boxShadow: '0 8px #FDE68A' }}>
+              <div className="rounded-3xl p-6 relative" style={{ backgroundColor: '#0369A1', border: '4px solid #38BDF8', boxShadow: '0 8px #38BDF8' }}>
                 <div className="flex justify-between items-center mb-6">
-                  <span className="text-xs font-black tracking-wider text-pink-600 bg-pink-50 border-2 border-pink-200 px-3 py-1.5 rounded-full">
-                    🎯 題目 {quizIdx + 1}
+                  <span className="text-xs font-black tracking-wider bg-sky-100 text-sky-800 px-3 py-1.5 rounded-full border border-sky-300">
+                    🎯 題目 {quizIdx + 1} / {vocabularyData.length}
                   </span>
-                  <span className="text-xs font-black tracking-wider text-blue-600 bg-blue-50 border-2 border-blue-200 px-3 py-1.5 rounded-full">
-                    ⭐ 當前得分: {quizScore}
+                  <span className="text-xs font-black tracking-wider bg-emerald-100 text-emerald-800 px-3 py-1.5 rounded-full border border-emerald-300">
+                    ⭐ 得分: {quizScore}
                   </span>
                 </div>
 
-                <div className="mb-6 text-center py-4 bg-[#FEF3C7] border-2 border-[#FCD34D] rounded-2xl">
-                  <p className="text-xs text-amber-800 font-black uppercase tracking-wider mb-1">請問以下哪個is正確的英文單字？</p>
-                  <h3 className="text-2xl font-black text-[#78350F]">👉 {vocabularyData[quizIdx]?.meaningZh}</h3>
+                <div className="quiz-question-box mb-6 text-center py-5 bg-white border-2 border-[#38BDF8] rounded-2xl px-4">
+                  <p className="text-xs font-black uppercase tracking-wider text-sky-600 mb-1">請選擇對應的英文單字：</p>
+                  <h3 className="text-2xl font-black">👉 {vocabularyData[quizIdx]?.meaningZh}</h3>
                 </div>
 
                 <div className="grid grid-cols-1 gap-3">
@@ -321,89 +528,63 @@ function App() {
                     const isCurrentSelected = selectedAnswer === option.word;
                     const isCorrectAnswer = option.word === vocabularyData[quizIdx]?.word;
                     
-                    let btnStyle = { backgroundColor: '#EFF6FF', borderColor: '#93C5FD', color: '#1E40AF' };
+                    let btnStyle = { backgroundColor: '#0EA5E9', borderColor: '#7DD3FC' };
                     if (selectedAnswer !== null) {
                       if (isCurrentSelected) {
                         btnStyle = isCorrectAnswer 
-                          ? { backgroundColor: '#10B981', borderColor: '#047857', color: '#FFFFFF' } 
-                          : { backgroundColor: '#EF4444', borderColor: '#B91C1C', color: '#FFFFFF' };
+                          ? { backgroundColor: '#10B981', borderColor: '#047857' } 
+                          : { backgroundColor: '#EF4444', borderColor: '#B91C1C' };
                       } else if (isCorrectAnswer) {
-                        btnStyle = { backgroundColor: '#D1FAE5', borderColor: '#34D399', color: '#065F46' };
+                        btnStyle = { backgroundColor: '#059669', borderColor: '#34D399' };
                       } else {
-                        btnStyle = { backgroundColor: '#F9FAFB', borderColor: '#E5E7EB', color: '#9CA3AF', opacity: 0.4 };
+                        btnStyle = { backgroundColor: '#0284C7', borderColor: '#0369A1', opacity: 0.4 };
                       }
                     }
 
                     return (
                       <button 
                         key={idx} 
-                        onClick={() => { 
-                          if (selectedAnswer === null) {
-                            setSelectedAnswer(option.word); 
-                            if (option.word === vocabularyData[quizIdx]?.word) setQuizScore(p => p + 10); 
-                          }
-                        }} 
+                        onClick={() => handleSelectQuizAnswer(option.word)} 
                         disabled={selectedAnswer !== null} 
-                        className="w-full p-4 rounded-xl border-2 font-black text-sm text-left border-b-4 transition-all"
+                        className="quiz-option-btn-default w-full p-4 rounded-xl border-2 font-black text-sm text-left border-b-4 transition-all flex items-center"
                         style={{ ...btnStyle }}
                       >
-                        <span className="inline-block w-6 h-6 rounded-lg bg-black/5 text-center leading-6 text-xs mr-3 font-bold">{idx + 1}</span>
+                        <span className="inline-block w-6 h-6 rounded-lg bg-white/20 text-center leading-6 text-xs mr-3 font-bold text-white">{idx + 1}</span>
                         {option.word}
                       </button>
                     );
                   })}
                 </div>
-
-                {selectedAnswer !== null && (
-                  <div className="fixed bottom-0 left-0 right-0 py-5 px-6 border-t-4 flex flex-col sm:flex-row justify-between items-center gap-4 z-50"
-                    style={{
-                      backgroundColor: selectedAnswer === vocabularyData[quizIdx]?.word ? '#A7F3D0' : '#FCA5A5',
-                      borderColor: selectedAnswer === vocabularyData[quizIdx]?.word ? '#059669' : '#DC2626',
-                      color: selectedAnswer === vocabularyData[quizIdx]?.word ? '#064E3B' : '#7F1D1D'
-                    }}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-3xl">{selectedAnswer === vocabularyData[quizIdx]?.word ? '🎉' : '😢'}</span>
-                      <div>
-                        <p className="text-base font-black uppercase tracking-wider">
-                          {selectedAnswer === vocabularyData[quizIdx]?.word ? '太棒了！答對囉！' : '好可惜，答錯了！'}
-                        </p>
-                        <p className="text-xs font-bold opacity-90 mt-0.5">
-                          正確答案是： <span className="font-black underline">{vocabularyData[quizIdx]?.word}</span>
-                        </p>
-                      </div>
-                    </div>
-                    <button 
-                      onClick={() => { 
-                        if (quizIdx < vocabularyData.length - 1) setQuizIdx(p => p + 1); else setIsQuizFinished(true);
-                        setSelectedAnswer(null); 
-                      }} 
-                      className="px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest border-b-4 text-white transition-all w-full sm:w-auto"
-                      style={{
-                        backgroundColor: selectedAnswer === vocabularyData[quizIdx]?.word ? '#059669' : '#DC2626',
-                        borderColor: selectedAnswer === vocabularyData[quizIdx]?.word ? '#047857' : '#B91C1C'
-                      }}
-                    >
-                      下一題 ▶
-                    </button>
-                  </div>
-                )}
               </div>
             ) : (
-              <div className="bg-[#EEF2F6] border-4 border-[#CBD5E1] rounded-3xl p-8 text-center shadow-[0_8px_0_0_#CBD5E1] space-y-4">
+              <div className="bg-white border-4 border-[#38BDF8] rounded-3xl p-8 text-center shadow-[0_8px_0_0_#0369A1] space-y-4">
                 <div className="text-5xl">🏆</div>
-                <h3 className="text-2xl font-black text-[#1E293B]">✨ 恭喜完成本次測驗！ ✨</h3>
-                <p className="text-sm font-bold text-gray-500 uppercase tracking-wider">您的最終得分</p>
-                <span classNanpm run dev me="text-5xl font-black text-[#4F46E5] block py-2">{quizScore} / 100</span>
-                <button onClick={() => { setQuizIdx(0); setQuizScore(0); setIsQuizFinished(false); setSelectedAnswer(null); }} className="w-full py-3.5 bg-[#4F46E5] border-b-4 border-[#3730A3] text-white font-black rounded-xl text-xs uppercase tracking-wider active:translate-y-0.5 transition-all">重新挑戰 🚀</button>
+                <h3 className="text-2xl font-black">✨ 恭喜完成本次測驗！ ✨</h3>
+                <p className="text-sm font-bold text-slate-400 uppercase tracking-wider">您的最終得分</p>
+                <span className="text-5xl font-black block py-2 text-sky-600">{quizScore} / {vocabularyData.length * 10}</span>
+                <button onClick={() => { setQuizIdx(0); setQuizScore(0); setIsQuizFinished(false); setSelectedAnswer(null); }} className="w-full py-3.5 bg-[#0284C7] border-b-4 border-[#0369A1] text-white font-black rounded-xl text-xs uppercase tracking-wider active:translate-y-0.5 transition-all">重新挑戰 🚀</button>
               </div>
             )}
           </div>
         )}
 
-        {/* 7. 連連看 */}
+        {/* 7. 🧩 連連看 */}
         {currentMode === 'game' && (
-          <BlockBlast gameScore={gameScore} initBlockGame={initBlockGame} gameBlocks={gameBlocks} selectedBlock={selectedBlock} shakeBlockId={shakeBlockId} handleBlockClick={handleBlockClick} />
+          <div className="game-block-fix">
+            <BlockBlast gameScore={gameScore} initBlockGame={initBlockGame} gameBlocks={gameBlocks} selectedBlock={selectedBlock} shakeBlockId={shakeBlockId} handleBlockClick={handleBlockClick} />
+          </div>
+        )}
+
+        {/* 8. 👤 個人簡介 */}
+        {currentMode === 'profile' && (
+          <UserProfile />
+        )}
+
+        {/* 9. 📚 本學期課程 (Sửa dứt điểm lỗi chữ trắng nền trắng - image_6b6877.png) */}
+        {currentMode === 'syllabus' && (
+          <div className="course-syllabus-wrapper">
+            <CourseSyllabus />
+          </div>
         )}
       </main>
     </div>
