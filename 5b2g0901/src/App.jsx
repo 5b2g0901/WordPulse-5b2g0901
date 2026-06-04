@@ -580,14 +580,31 @@ function App() {
           <UserProfile />
         )}
 
-        {/* 9. 📚 本學期課程 (Sửa dứt điểm lỗi chữ trắng nền trắng - image_6b6877.png) */}
-        {currentMode === 'syllabus' && (
-          <div className="course-syllabus-wrapper">
-            <CourseSyllabus />
-          </div>
-        )}
-      </main>
-    </div>
+      {/* 9. 📚 本學期課程 (Sửa dứt điểm lỗi chữ trắng nền trắng - image_6b6877.png) */}
+      {currentMode === 'syllabus' && (
+        <div 
+          className="course-syllabus-wrapper p-4 rounded-2xl" 
+          style={{ 
+            backgroundColor: '#FFFFFF', /* Đảm bảo nền trắng tinh */
+            color: '#000000',           /* Ép toàn bộ chữ mặc định về màu đen */
+          }}
+        >
+          {/* Thêm một khối style nhỏ để ép tất cả thẻ con (h3, span, p) bên trong thành chữ đen */}
+          <style>{`
+            .course-syllabus-wrapper *,
+            .course-syllabus-wrapper h3,
+            .course-syllabus-wrapper span,
+            .course-syllabus-wrapper p,
+            .course-syllabus-wrapper div {
+              color: #000000 !important; /* Chữ đen tuyền rõ ràng 100% */
+            }
+          `}</style>
+          
+          <CourseSyllabus />
+        </div>
+      )}
+    </main>
+  </div>
   );
 }
 
