@@ -6,6 +6,7 @@ import BlockBlast from './components/BlockBlast';
 import ListeningQuiz from './components/ListeningQuiz';
 import UserProfile from './components/UserProfile';
 import CourseSyllabus from './components/CourseSyllabus';
+import Flashcard from './components/Flashcard'; // Component Flashcard giao diện cũ
 
 function App() {
   const [currentMode, setCurrentMode] = useState('syllabus'); 
@@ -14,8 +15,6 @@ function App() {
 
   // --- MODES STATE ---
   const [diveIdx, setDiveIdx] = useState(0);
-  const [cardIdx, setCardIdx] = useState(0);
-  const [isFlipped, setIsFlipped] = useState(false);
   const [typingIdx, setTypingIdx] = useState(0);
   const [typedInput, setTypedInput] = useState('');
   const [typingStatus, setTypingStatus] = useState('idle');
@@ -36,6 +35,14 @@ function App() {
   const [selectedBlock, setSelectedBlock] = useState(null);
   const [gameScore, setGameScore] = useState(0);
   const [shakeBlockId, setShakeBlockId] = useState(null);
+
+  // --- DỮ LIỆU TỪ VỰNG MẪU CHO FLASHCARD CŨ ---
+  const myVocabularyData = [
+    { word: "Sibling", ipa: "ˈsɪblɪŋ", meaning: "兄弟姊妹 (親兄弟姊妹)", sentence: "I have two siblings: an older brother and a younger sister." },
+    { word: "Nuclear family", ipa: "ˈnuːkliər ˈfæməli", meaning: "核心家庭 (小家庭)", sentence: "Modern urbanization has led to an increase in nuclear families." },
+    { word: "Ingredient", ipa: "ɪnˈɡriːdiənt", meaning: "原料、成分、配料", sentence: "Flour is the chief ingredient in bread." },
+    { word: "Explore", ipa: "ɪkˈsplɔːr", meaning: "探索、探險、勘探", sentence: "The ideal way to explore the island is on horseback." }
+  ];
 
   useEffect(() => {
     if (vocabularyData[diveIdx]) {
@@ -177,7 +184,7 @@ function App() {
         .main-blue-container p,
         .main-blue-container span,
         .main-blue-container label,
-        .main-blue-container div:not(.bg-white):not([style*="background-color: white"]) {
+        .main-blue-container div:not(.bg-white):not([style*="background-color: white"]):not(.flashcard-container):not(.flashcard-container *) {
           color: #FFFFFF !important;
         }
 
@@ -187,7 +194,6 @@ function App() {
         }
 
         /* Quy tắc 2: TẤT CẢ CÁC VÙNG NỀN TRẮNG (CÁC KHỐI BÊN DƯỚI) THÌ CHỮ PHẢI MÀU ĐEN */
-        /* Bao gồm: Toàn bộ thẻ con của .bg-white, thẻ Syllabus, các thẻ li, p, span bên trong nó */
         .bg-white,
         .bg-white *,
         [style*="background-color: white"] *,
@@ -198,7 +204,7 @@ function App() {
         .gallery-card *,
         .quiz-question-box,
         .quiz-question-box * {
-          color: #1E293B !important; /* Chữ màu đen xám đậm thanh lịch, cực nét */
+          color: #1E293B !important;
         }
 
         /* Đảm bảo tiêu đề các tuần học hoặc từ khóa có màu đen tuyền trên nền trắng */
@@ -281,7 +287,7 @@ function App() {
             return (
               <button 
                 key={nav.id} 
-                onClick={() => { setCurrentMode(nav.id); setIsFlipped(false); }} 
+                onClick={() => { setCurrentMode(nav.id); }} 
                 className="px-3 py-2 rounded-xl text-xs font-black uppercase transition-all"
                 style={{
                   backgroundColor: isActive ? '#FFFFFF' : '#0284C7',
@@ -303,7 +309,7 @@ function App() {
       <main 
         className="max-w-5xl mx-auto main-blue-container" 
         style={{ 
-          backgroundColor: '#0284C7', 
+          backgroundColor: currentMode === 'card' ? '#ffffff' : '#0284C7', // Chuyển nền trắng riêng cho giao diện Flashcard cũ
           padding: '32px', 
           borderRadius: '32px', 
           border: '4px solid #38BDF8', 
@@ -362,97 +368,44 @@ function App() {
 
         {/* 2. 📇 單字卡 */}
         {currentMode === 'card' && (
-          <div className="flex flex-col items-center justify-center py-6">
-            <div onClick={() => setIsFlipped(!isFlipped)} className="w-full max-w-sm h-72 cursor-pointer perspective mb-6">
-              <div className={`relative w-full h-full duration-300 transform-style preserve-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
-                <div className="absolute inset-0 w-full h-full rounded-3xl p-8 flex flex-col justify-between items-center backface-hidden" style={{ backgroundColor: '#0369A1', border: '4px solid #38BDF8', boxShadow: '0 8px #38BDF8' }}>
-                  <span className="text-xs font-black tracking-wider bg-[#0284C7] px-2.5 py-1 rounded-full border border-[#38BDF8] text-white">正面 ✨</span>
-                  <h3 className="text-4xl font-black tracking-wide text-white"> {vocabularyData[cardIdx]?.word}</h3>
-                  <span className="text-[11px] bg-white text-[#0369A1] px-3 py-1.5 rounded-xl font-black border border-[#38BDF8]">點擊翻面 🔄</span>
-                </div>
-                <div className="absolute inset-0 w-full h-full rounded-3xl p-8 flex flex-col justify-between items-center rotate-y-180 backface-hidden" style={{ backgroundColor: '#0EA5E9', border: '4px solid #BAE6FD', boxShadow: '0 8px #BAE6FD' }}>
-                  <span className="text-xs font-black tracking-wider bg-[#0284C7] px-2.5 py-1 rounded-full border border-[#BAE6FD] text-white">背面 🧸</span>
-                  <h4 className="text-2xl font-black text-center leading-snug text-white">{vocabularyData[cardIdx]?.meaningZh}</h4>
-                  <span className="text-[11px] bg-white text-[#0EA5E9] px-3 py-1.5 rounded-xl font-black border border-[#BAE6FD]">點擊翻面 🔄</span>
-                </div>
-              </div>
-            </div>
-            <div className="flex gap-4 items-center px-4 py-2 rounded-2xl" style={{ backgroundColor: '#0369A1', border: '2px solid #38BDF8' }}>
-              <button onClick={() => { setIsFlipped(false); setCardIdx(p => Math.max(0, p - 1)); }} disabled={cardIdx === 0} className="px-4 py-2 rounded-xl bg-white border-2 text-slate-900 font-black disabled:opacity-30">◀ 上一個</button>
-              <span className="text-xs font-mono font-black px-2 text-white">{cardIdx + 1} / {vocabularyData.length}</span>
-              <button onClick={() => { setIsFlipped(false); setCardIdx(p => Math.min(vocabularyData.length - 1, p + 1)); }} disabled={cardIdx === vocabularyData.length - 1} className="px-4 py-2 rounded-xl bg-white border-2 text-slate-900 font-black disabled:opacity-30">下一個 ▶</button>
-            </div>
-          </div>
+          <Flashcard vocabularyData={myVocabularyData} />
         )}
 
         {/* 3. 🖼️ 單字庫 */}
-{currentMode === 'gallery' && (
-  <div className="max-w-4xl mx-auto">
-    {vocabularyData.map((v, index) => (
-      <div key={v.id}>
-        
-        <div className="py-8 text-center">
-          
-          <h3
-            className="text-3xl font-black mb-4"
-            style={{ color: '#FFFFFF' }}
-          >
-            {v.word}
-          </h3>
-
-          <p
-            className="text-xl mb-4"
-            style={{ color: '#E0F2FE' }}
-          >
-            {v.meaningZh}
-          </p>
-
-          <p
-            className="italic text-lg mb-5 px-4"
-            style={{ color: '#FFFFFF' }}
-          >
-            "{v.example}"
-          </p>
-
-          <button
-            onClick={() => handleSpeak(v.word)}
-            className="px-4 py-2 rounded-lg font-bold"
-            style={{
-              backgroundColor: '#FFFFFF',
-              color: '#0369A1'
-            }}
-          >
-            🔊 發音
-          </button>
-
-          {userNotes[v.id] && (
-            <div
-              className="mt-4 p-3 rounded-xl"
-              style={{
-                backgroundColor: '#FEF3C7',
-                color: '#92400E'
-              }}
-            >
-              📌 {userNotes[v.id]}
-            </div>
-          )}
-        </div>
-
-        {index !== vocabularyData.length - 1 && (
-          <hr
-            style={{
-              border: 'none',
-              height: '2px',
-              backgroundColor: '#7DD3FC',
-              width: '100%'
-            }}
-          />
+        {currentMode === 'gallery' && (
+          <div className="max-w-4xl mx-auto">
+            {vocabularyData.map((v, index) => (
+              <div key={v.id}>
+                <div className="py-8 text-center">
+                  <h3 className="text-3xl font-black mb-4" style={{ color: '#FFFFFF' }}>
+                    {v.word}
+                  </h3>
+                  <p className="text-xl mb-4" style={{ color: '#E0F2FE' }}>
+                    {v.meaningZh}
+                  </p>
+                  <p className="italic text-lg mb-5 px-4" style={{ color: '#FFFFFF' }}>
+                    "{v.example}"
+                  </p>
+                  <button
+                    onClick={() => handleSpeak(v.word)}
+                    className="px-4 py-2 rounded-lg font-bold"
+                    style={{ backgroundColor: '#FFFFFF', color: '#0369A1' }}
+                  >
+                    🔊 發音
+                  </button>
+                  {userNotes[v.id] && (
+                    <div className="mt-4 p-3 rounded-xl" style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>
+                      📌 {userNotes[v.id]}
+                    </div>
+                  )}
+                </div>
+                {index !== vocabularyData.length - 1 && (
+                  <hr style={{ border: 'none', height: '2px', backgroundColor: '#7DD3FC', width: '100%' }} />
+                )}
+              </div>
+            ))}
+          </div>
         )}
-
-      </div>
-    ))}
-  </div>
-)}
 
         {/* 4. ⌨️ 拼字輸入 */}
         {currentMode === 'typing' && (
@@ -580,31 +533,29 @@ function App() {
           <UserProfile />
         )}
 
-      {/* 9. 📚 本學期課程 (Sửa dứt điểm lỗi chữ trắng nền trắng - image_6b6877.png) */}
-      {currentMode === 'syllabus' && (
-        <div 
-          className="course-syllabus-wrapper p-4 rounded-2xl" 
-          style={{ 
-            backgroundColor: '#FFFFFF', /* Đảm bảo nền trắng tinh */
-            color: '#000000',           /* Ép toàn bộ chữ mặc định về màu đen */
-          }}
-        >
-          {/* Thêm một khối style nhỏ để ép tất cả thẻ con (h3, span, p) bên trong thành chữ đen */}
-          <style>{`
-            .course-syllabus-wrapper *,
-            .course-syllabus-wrapper h3,
-            .course-syllabus-wrapper span,
-            .course-syllabus-wrapper p,
-            .course-syllabus-wrapper div {
-              color: #000000 !important; /* Chữ đen tuyền rõ ràng 100% */
-            }
-          `}</style>
-          
-          <CourseSyllabus />
-        </div>
-      )}
-    </main>
-  </div>
+        {/* 9. 📚 本學期課程 */}
+        {currentMode === 'syllabus' && (
+          <div 
+            className="course-syllabus-wrapper p-4 rounded-2xl" 
+            style={{ 
+              backgroundColor: '#FFFFFF',
+              color: '#000000',
+            }}
+          >
+            <style>{`
+              .course-syllabus-wrapper *,
+              .course-syllabus-wrapper h3,
+              .course-syllabus-wrapper span,
+              .course-syllabus-wrapper p,
+              .course-syllabus-wrapper div {
+                color: #000000 !important;
+              }
+            `}</style>
+            <CourseSyllabus />
+          </div>
+        )}
+      </main>
+    </div>
   );
 }
 
