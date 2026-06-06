@@ -3,10 +3,11 @@ import { vocabularyData } from './data/vocabulary';
 import DeepDive from './components/DeepDive';
 import SpeedTyping from './components/SpeedTyping';
 import BlockBlast from './components/BlockBlast';
-import ListeningQuiz from './components/ListeningQuiz';
+import ListeningQuiz from './components/ListeningQuiz'; // Gọi chính xác component riêng biệt
 import UserProfile from './components/UserProfile';
 import CourseSyllabus from './components/CourseSyllabus';
-import Flashcard from './components/Flashcard'; // Component Flashcard giao diện cũ
+import Flashcard from './components/Flashcard'; 
+import VocabularyBank from './components/VocabularyBank';
 
 function App() {
   const [currentMode, setCurrentMode] = useState('syllabus'); 
@@ -19,8 +20,7 @@ function App() {
   const [typedInput, setTypedInput] = useState('');
   const [typingStatus, setTypingStatus] = useState('idle');
   const [typingScore, setTypingScore] = useState(0);
-  const [listeningIdx, setListeningIdx] = useState(0);
-  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [typingHintCount, setTypingHintCount] = useState(0); 
   const [speechRate, setSpeechRate] = useState(0.85);
   
   // --- STATE CORE QUIZ ---
@@ -36,13 +36,9 @@ function App() {
   const [gameScore, setGameScore] = useState(0);
   const [shakeBlockId, setShakeBlockId] = useState(null);
 
-  // --- DỮ LIỆU TỪ VỰNG MẪU CHO FLASHCARD CŨ ---
-  const myVocabularyData = [
-    { word: "Sibling", ipa: "ˈsɪblɪŋ", meaning: "兄弟姊妹 (親兄弟姊妹)", sentence: "I have two siblings: an older brother and a younger sister." },
-    { word: "Nuclear family", ipa: "ˈnuːkliər ˈfæməli", meaning: "核心家庭 (小家庭)", sentence: "Modern urbanization has led to an increase in nuclear families." },
-    { word: "Ingredient", ipa: "ɪnˈɡriːdiənt", meaning: "原料、成分、配料", sentence: "Flour is the chief ingredient in bread." },
-    { word: "Explore", ipa: "ɪkˈsplɔːr", meaning: "探索、探險、勘探", sentence: "The ideal way to explore the island is on horseback." }
-  ];
+  // --- STATE KHO ĐƠN TỰ (GALLERY VIEW) CHUYÊN NGHIỆP ---
+  const [galSearch, setGalSearch] = useState('');
+  const [galFilter, setGalFilter] = useState('all'); 
 
   useEffect(() => {
     if (vocabularyData[diveIdx]) {
@@ -121,10 +117,21 @@ function App() {
         setTypingIdx(prev => (prev < vocabularyData.length - 1 ? prev + 1 : 0));
         setTypedInput('');
         setTypingStatus('idle');
+        setTypingHintCount(0); 
       }, 800);
     } else {
       setTypingStatus('wrong');
       setTimeout(() => setTypingStatus('idle'), 800);
+    }
+  };
+
+  const handleGiveHint = () => {
+    const currentCorrectWord = vocabularyData[typingIdx]?.word || '';
+    if (typingHintCount < currentCorrectWord.length) {
+      const nextHintCount = typingHintCount + 1;
+      setTypingHintCount(nextHintCount);
+      const partialHint = currentCorrectWord.substring(0, nextHintCount);
+      setTypedInput(partialHint);
     }
   };
 
@@ -134,8 +141,6 @@ function App() {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'en-US';
       utterance.rate = speechRate;
-      utterance.onstart = () => setIsSpeaking(true);
-      utterance.onend = () => setIsSpeaking(false);
       window.speechSynthesis.speak(utterance);
     }
   };
@@ -167,14 +172,12 @@ function App() {
       }}
     >
       
-      {/* KHU VỰC CSS FIX TRIỆT ĐỂ: NỀN XANH CHỮ TRẮNG, NỀN TRẮNG CHỮ ĐEN MỜI XEM QUA */}
+      {/* KHU VỰC CSS FIX */}
       <style>{`
-        /* Đảm bảo toàn bộ phông chữ thống nhất */
         *, body, div, h1, h2, h3, h4, h5, h6, p, span, label, button, input, textarea, li, strong {
           font-family: "Brandon Grotesque", "Helvetica Neue", Arial, sans-serif !important;
         }
 
-        /* Quy tắc 1: Trong vùng container nền xanh (Mặc định tất cả các text là màu trắng tinh) */
         .main-blue-container,
         .main-blue-container h1,
         .main-blue-container h2,
@@ -184,8 +187,8 @@ function App() {
         .main-blue-container p,
         .main-blue-container span,
         .main-blue-container label,
-        .main-blue-container div:not(.bg-white):not([style*="background-color: white"]):not(.flashcard-container):not(.flashcard-container *) {
-          color: #FFFFFF !important;
+        .main-blue-container div:not(.bg-white):not([style*="background-color: white"]):not(.qz-wrapper):not(.qz-wrapper *):not(.gal-card):not(.gal-card *) {
+          color: #000000 !important;
         }
 
         .main-blue-container .sub-light-label {
@@ -193,42 +196,37 @@ function App() {
           font-weight: 800;
         }
 
-        /* Quy tắc 2: TẤT CẢ CÁC VÙNG NỀN TRẮNG (CÁC KHỐI BÊN DƯỚI) THÌ CHỮ PHẢI MÀU ĐEN */
-        .bg-white,
-        .bg-white *,
-        [style*="background-color: white"] *,
-        [style*="background-color: rgb(255, 255, 255)"] *,
+        .bg-white:not(.qz-wrapper):not(.qz-wrapper *):not(.gal-card):not(.gal-card *),
+        .bg-white *:not(.qz-wrapper):not(.qz-wrapper *):not(.gal-card):not(.gal-card *),
+        [style*="background-color: white"] *:not(.qz-wrapper):not(.qz-wrapper *):not(.gal-card):not(.gal-card *),
+        [style*="background-color: rgb(255, 255, 255)"] *:not(.qz-wrapper):not(.qz-wrapper *):not(.gal-card):not(.gal-card *),
         .course-syllabus-wrapper .bg-white,
         .course-syllabus-wrapper .bg-white *,
-        .gallery-card,
-        .gallery-card *,
         .quiz-question-box,
         .quiz-question-box * {
           color: #1E293B !important;
         }
 
-        /* Đảm bảo tiêu đề các tuần học hoặc từ khóa có màu đen tuyền trên nền trắng */
-        .course-syllabus-wrapper .bg-white h1,
-        .course-syllabus-wrapper .bg-white h2,
-        .course-syllabus-wrapper .bg-white h3,
-        .course-syllabus-wrapper .bg-white h4,
-        .course-syllabus-wrapper .bg-white p,
-        .course-syllabus-wrapper .bg-white li,
-        .course-syllabus-wrapper .bg-white span,
-        .course-syllabus-wrapper .bg-white strong {
-          color: #0F172A !important;
+        @keyframes vinyl-spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .vinyl-playing {
+          animation: vinyl-spin 3s linear infinite;
         }
 
-        /* Nút lựa chọn của game连连看 nằm trên nền trắng */
-        .game-block-fix button {
-          background-color: #FFFFFF !important;
-          color: #0369A1 !important; 
-          font-weight: 900 !important;
-          border: 2px solid #38BDF8 !important;
+        .audio-wave-bar {
+          display: inline-block; width: 4px; height: 15px; background-color: #0284c7;
+          margin: 0 2px; border-radius: 2px; transition: height 0.2s ease;
         }
-
-        .quiz-option-btn-default {
-          color: #FFFFFF !important; 
+        .audio-wave-active .audio-wave-bar:nth-child(1) { animation: wave-anim 0.6s infinite alternate-grow; }
+        .audio-wave-active .audio-wave-bar:nth-child(2) { animation: wave-anim 0.4s infinite alternate-grow 0.1s; }
+        .audio-wave-active .audio-wave-bar:nth-child(3) { animation: wave-anim 0.8s infinite alternate-grow 0.2s; }
+        .audio-wave-active .audio-wave-bar:nth-child(4) { animation: wave-anim 0.5s infinite alternate-grow 0.3s; }
+        
+        @keyframes wave-anim {
+          from { height: 6px; }
+          to { height: 24px; }
         }
       `}</style>
       
@@ -293,7 +291,7 @@ function App() {
                   backgroundColor: isActive ? '#FFFFFF' : '#0284C7',
                   color: isActive ? '#0369A1' : '#FFFFFF', 
                   border: isActive ? '2px solid #38BDF8' : '2px solid #0284C7',
-                  borderBottom: isActive ? '5px solid #38BDF8' : '4px solid #0369A1',
+                  borderBottom: isActive ? '5px solid #38BDF8' : '4px solid #0284C7',
                   transform: isActive ? 'translateY(1px)' : 'none',
                   cursor: 'pointer'
                 }}
@@ -309,7 +307,7 @@ function App() {
       <main 
         className="max-w-5xl mx-auto main-blue-container" 
         style={{ 
-          backgroundColor: currentMode === 'card' ? '#ffffff' : '#0284C7', // Chuyển nền trắng riêng cho giao diện Flashcard cũ
+          backgroundColor: currentMode === 'card' ? '#0081cc' : '#0284C7', 
           padding: '32px', 
           borderRadius: '32px', 
           border: '4px solid #38BDF8', 
@@ -319,145 +317,182 @@ function App() {
         
         {/* 1. 🚀 深度探索 */}
         {currentMode === 'dive' && (
-          <div className="space-y-6 text-center">
-            <div>
-              <span className="sub-light-label block text-sm uppercase tracking-widest mb-1">Current Word</span>
-              <h2 className="text-5xl font-black tracking-wide text-white">{vocabularyData[diveIdx]?.word}</h2>
-            </div>
-            
-            <div className="py-2">
-              <button onClick={() => handleSpeak(vocabularyData[diveIdx]?.word)} className="p-3 bg-[#0EA5E9] border-2 border-[#7DD3FC] rounded-full hover:scale-110 transition-transform">🔊</button>
-            </div>
-
-            <hr className="border-sky-400/40 my-4" />
-
-            <div>
-              <span className="sub-light-label block text-sm mb-1">中文釋義</span>
-              <p className="text-2xl font-bold text-white">{vocabularyData[diveIdx]?.meaningZh}</p>
-            </div>
-
-            <div>
-              <span className="sub-light-label block text-sm mb-1">情境例句</span>
-              <p className="text-lg italic text-sky-100 px-6 max-w-2xl mx-auto">"{vocabularyData[diveIdx]?.example}"</p>
-            </div>
-
-            <div className="flex justify-center gap-6">
-              <div>
-                <span className="sub-light-label block text-xs mb-1">詞性標籤</span>
-                <span className="inline-block bg-sky-500/50 px-3 py-1 rounded-xl text-xs font-bold border border-sky-300">🏷️ {getSentenceAnalysis(vocabularyData[diveIdx]?.word).grammar}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+            <div style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '24px',
+              padding: '40px 32px',
+              width: '100%',
+              maxWidth: '680px',
+              boxShadow: '0 12px 32px rgba(0, 0, 0, 0.15)',
+              borderBottom: '8px solid #cbd5e1',
+              textAlign: 'center',
+              boxSizing: 'border-box'
+            }}>
+              <div style={{ marginBottom: '16px' }}>
+                <span style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#0284c7', marginBottom: '6px' }}>
+                  CURRENT WORD
+                </span>
+                <h2 style={{ fontSize: '42px', fontWeight: '900', color: '#0f172a', margin: 0 }}>
+                  {vocabularyData[diveIdx]?.word}
+                </h2>
               </div>
-              <div>
-                <span className="sub-light-label block text-xs mb-1">推薦句型</span>
-                <span className="inline-block bg-sky-500/50 px-3 py-1 rounded-xl text-xs font-bold border border-sky-300">💡 {getSentenceAnalysis(vocabularyData[diveIdx]?.word).structures[0]}</span>
+              <div style={{ marginBottom: '24px' }}>
+                <button 
+                  onClick={() => handleSpeak(vocabularyData[diveIdx]?.word)} 
+                  style={{
+                    width: '54px',
+                    height: '54px',
+                    backgroundColor: '#e0f2fe',
+                    border: '2px solid #38bdf8',
+                    borderRadius: '50%',
+                    fontSize: '20px',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 4px 0 #38bdf8'
+                  }}
+                >
+                  🔊
+                </button>
+              </div>
+              <hr style={{ border: 'none', borderTop: '2px dashed #e2e8f0', margin: '24px 0' }} />
+              <div style={{ marginBottom: '24px' }}>
+                <span style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#64748b', marginBottom: '6px' }}>
+                  中文釋義
+                </span>
+                <p style={{ fontSize: '24px', fontWeight: '800', color: '#0369a1', margin: 0 }}>
+                  {vocabularyData[diveIdx]?.meaningZh}
+                </p>
+              </div>
+              <div style={{ marginBottom: '28px', padding: '16px', backgroundColor: '#f8fafc', borderRadius: '16px', borderLeft: '4px solid #0ea5e9' }}>
+                <span style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#64748b', marginBottom: '6px', textAlign: 'left' }}>
+                  情境例句
+                </span>
+                <p style={{ fontSize: '16px', fontWeight: '600', fontStyle: 'italic', color: '#334155', margin: 0, textAlign: 'left', lineHeight: '1.5' }}>
+                  "{vocabularyData[diveIdx]?.example}"
+                </p>
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', justifyQontent: 'center', gap: '12px' }}>
+                <span style={{ backgroundColor: '#f1f5f9', color: '#475569', padding: '8px 14px', borderRadius: '12px', fontSize: '13px', fontWeight: '700' }}>
+                  🏷️ 詞性: {getSentenceAnalysis(vocabularyData[diveIdx]?.word).grammar}
+                </span>
+                <span style={{ backgroundColor: '#f0fdf4', color: '#166534', padding: '8px 14px', borderRadius: '12px', fontSize: '13px', fontWeight: '700' }}>
+                  💡 推薦句型: {getSentenceAnalysis(vocabularyData[diveIdx]?.word).structures[0]}
+                </span>
               </div>
             </div>
 
-            <div className="flex gap-4 items-center justify-center pt-4">
-              <button onClick={() => setDiveIdx(p => Math.max(0, p - 1))} disabled={diveIdx === 0} className="px-4 py-2 bg-white text-slate-900 border-2 rounded-xl text-xs font-black disabled:opacity-30">◀ 上一個</button>
-              <span className="font-mono font-black text-white">{diveIdx + 1} / {vocabularyData.length}</span>
-              <button onClick={() => setDiveIdx(p => Math.min(vocabularyData.length - 1, p + 1))} disabled={diveIdx === vocabularyData.length - 1} className="px-4 py-2 bg-white text-slate-900 border-2 rounded-xl text-xs font-black disabled:opacity-30">下一個 ▶</button>
-            </div>
-
-            <div className="max-w-md mx-auto pt-4 text-left">
-              <label className="sub-light-label block text-xs mb-1">📌 筆記空間</label>
-              <textarea value={activeNoteText} onChange={(e) => setActiveNoteText(e.target.value)} placeholder="在此輸入您對該單字的記憶聯想、補充筆記..." className="w-full p-3 rounded-xl bg-white border-2 border-sky-300 text-slate-900 text-sm focus:outline-none" rows={3} />
-              <button onClick={saveNote} className="mt-2 w-full py-2 bg-emerald-500 border-b-4 border-emerald-700 text-white font-black text-xs rounded-xl uppercase tracking-wider active:translate-y-0.5 transition-all">💾 儲存筆記</button>
+            <div style={{ display: 'flex', alignItems: 'center', justifyQontent: 'center', gap: '20px', margin: '24px 0' }}>
+              <button onClick={() => setDiveIdx(p => Math.max(0, p - 1))} disabled={diveIdx === 0} style={{ padding: '10px 20px', backgroundColor: '#ffffff', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' }}>◀ 上一個</button>
+              <span style={{ fontSize: '16px', fontWeight: '900', color: '#ffffff' }}>{diveIdx + 1} / {vocabularyData.length}</span>
+              <button onClick={() => setDiveIdx(p => Math.min(vocabularyData.length - 1, p + 1))} disabled={diveIdx === vocabularyData.length - 1} style={{ padding: '10px 20px', backgroundColor: '#ffffff', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' }}>下一個 ▶</button>
             </div>
           </div>
         )}
 
         {/* 2. 📇 單字卡 */}
-        {currentMode === 'card' && (
-          <Flashcard vocabularyData={myVocabularyData} />
-        )}
+        {currentMode === 'card' && <Flashcard vocabularyData={vocabularyData} />}
 
         {/* 3. 🖼️ 單字庫 */}
-        {currentMode === 'gallery' && (
-          <div className="max-w-4xl mx-auto">
-            {vocabularyData.map((v, index) => (
-              <div key={v.id}>
-                <div className="py-8 text-center">
-                  <h3 className="text-3xl font-black mb-4" style={{ color: '#FFFFFF' }}>
-                    {v.word}
-                  </h3>
-                  <p className="text-xl mb-4" style={{ color: '#E0F2FE' }}>
-                    {v.meaningZh}
-                  </p>
-                  <p className="italic text-lg mb-5 px-4" style={{ color: '#FFFFFF' }}>
-                    "{v.example}"
-                  </p>
-                  <button
-                    onClick={() => handleSpeak(v.word)}
-                    className="px-4 py-2 rounded-lg font-bold"
-                    style={{ backgroundColor: '#FFFFFF', color: '#0369A1' }}
-                  >
-                    🔊 發音
-                  </button>
-                  {userNotes[v.id] && (
-                    <div className="mt-4 p-3 rounded-xl" style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>
-                      📌 {userNotes[v.id]}
-                    </div>
-                  )}
-                </div>
-                {index !== vocabularyData.length - 1 && (
-                  <hr style={{ border: 'none', height: '2px', backgroundColor: '#7DD3FC', width: '100%' }} />
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+        {currentMode === 'gallery' && <VocabularyBank vocabularyData={vocabularyData} />}
 
-        {/* 4. ⌨️ 拼字輸入 */}
+        {/* 4. ⌨️ 拼字輸入 - SỬA LỖI LỆCH VÀ TRÀN KHUNG INPUT */}
         {currentMode === 'typing' && (
-          <div className="max-w-md mx-auto text-center space-y-6">
-            <div>
-              <span className="sub-light-label block text-xs uppercase tracking-widest mb-1">⚡ Speed Typing 🔥 Score: {typingScore}</span>
-              <p className="text-sm font-bold text-sky-200">請根據意思拼寫出正確英文單字</p>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+            <div style={{ 
+              backgroundColor: '#ffffff', 
+              borderRadius: '32px', 
+              padding: '40px 32px', 
+              width: '100%', 
+              maxWidth: '560px', 
+              textAlign: 'center',
+              boxShadow: '0 10px 0 #cbd5e1',
+              boxSizing: 'border-box'
+            }}>
+              <div style={{ marginBottom: '24px' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginBottom: '8px' }}>
+                  <button 
+                    type="button" 
+                    onClick={handleGiveHint} 
+                    style={{ backgroundColor: '#fee2e2', color: '#dc2626', padding: '8px 16px', borderRadius: '20px', fontWeight: '800', border: 'none', cursor: 'pointer' }}
+                  >
+                    💡 Suggest ({typingHintCount}/{vocabularyData[typingIdx]?.word.length})
+                  </button>
+                  <span style={{ backgroundColor: '#fef3c7', color: '#d97706', padding: '8px 16px', borderRadius: '20px', fontWeight: '800' }}>
+                    🔥 Score: {typingScore}
+                  </span>
+                </div>
+              </div>
+
+              <span style={{ display: 'block', fontSize: '11px', fontWeight: '900', color: '#94a3b8', trackingSpace: '1px', uppercase: true, marginBottom: '4px' }}>
+                CHINESE MEANING
+              </span>
+              <h3 style={{ fontSize: '28px', fontWeight: '900', color: '#0f172a', margin: '0 0 28px 0' }}>
+                👉 {vocabularyData[typingIdx]?.meaningZh}
+              </h3>
+
+              {/* Bọc form có maxWidth để Input không bị tràn bè ra 2 bên */}
+              <form 
+                onSubmit={handleTypingSubmit} 
+                style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '440px', margin: '0 auto' }}
+              >
+                <input 
+                  type="text" 
+                  value={typedInput} 
+                  onChange={(e) => setTypedInput(e.target.value)} 
+                  placeholder="在此輸入英文單字..." 
+                  style={{ 
+                    width: '100%', 
+                    padding: '16px', 
+                    borderRadius: '20px', 
+                    textAlign: 'center', 
+                    fontWeight: '800', 
+                    fontSize: '22px', 
+                    border: '3px solid #38bdf8', 
+                    outline: 'none',
+                    backgroundColor: '#f8fafc',
+                    boxSizing: 'border-box',
+                    transition: 'all 0.2s'
+                  }} 
+                />
+                <button 
+                  type="submit" 
+                  style={{ 
+                    width: '100%', 
+                    padding: '16px', 
+                    backgroundColor: '#0284c7', 
+                    color: '#ffffff', 
+                    borderRadius: '20px', 
+                    fontSize: '18px',
+                    fontWeight: '900', 
+                    border: 'none',
+                    boxShadow: '0 5px 0 #0369a1',
+                    cursor: 'pointer',
+                    transition: 'transform 0.1s'
+                  }}
+                  onMouseDown={(e) => e.currentTarget.style.transform = 'translateY(3px)'}
+                  onMouseUp={(e) => e.currentTarget.style.transform = 'none'}
+                >
+                  送出答案 🚀
+                </button>
+              </form>
             </div>
-            <h3 className="text-3xl font-black text-white">👉 {vocabularyData[typingIdx]?.meaningZh}</h3>
-            
-            <form onSubmit={handleTypingSubmit} className="space-y-4">
-              <input type="text" value={typedInput} onChange={(e) => setTypedInput(e.target.value)} placeholder="在此輸入英文單字..." className="w-full p-4 rounded-xl bg-white text-slate-900 text-center font-bold text-lg border-4 border-sky-300 focus:outline-none" />
-              <button type="submit" className="w-full py-3 bg-white text-sky-800 border-2 border-b-4 font-black rounded-xl text-xs uppercase">送出答案 🚀</button>
-            </form>
-            {typingStatus === 'correct' && <p className="text-emerald-400 font-black animate-bounce">🎉 太棒了，正確！</p>}
-            {typingStatus === 'wrong' && <p className="text-rose-400 font-black animate-shake">❌ 答錯了，再試一次！</p>}
           </div>
         )}
 
         {/* 5. 🎧 聽力訓練 */}
         {currentMode === 'listening' && (
-          <div className="max-w-md mx-auto text-center space-y-6">
-            <div className="flex items-center justify-center gap-2">
-              <span className="sub-light-label text-sm">語速調節:</span>
-              <input type="range" min="0.5" max="1.5" step="0.05" value={speechRate} onChange={(e) => setSpeechRate(parseFloat(e.target.value))} className="w-32 h-2 bg-sky-600 rounded-lg appearance-none cursor-pointer" />
-              <span className="text-xs font-mono bg-sky-900 px-2 py-0.5 rounded text-white">{speechRate}x</span>
-            </div>
-            
-            <div className="bg-sky-900/40 p-4 rounded-xl border border-sky-400/30 flex items-center justify-center gap-2">
-              <span className="text-xs font-bold text-sky-200">📋 切換單字:</span>
-              <select value={listeningIdx} onChange={(e) => setListeningIdx(parseInt(e.target.value))} className="bg-white text-slate-900 text-xs font-bold p-1.5 rounded-lg border-2 border-sky-300">
-                {vocabularyData.map((v, idx) => (
-                  <option key={v.id} value={idx}>{idx + 1}. {v.word}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="py-4">
-              <button onClick={() => handleSpeak(vocabularyData[listeningIdx]?.word)} className={`w-20 h-20 text-3xl bg-white border-4 border-sky-300 rounded-full flex items-center justify-center shadow-lg transform active:scale-95 transition-transform ${isSpeaking ? 'animate-ping' : ''}`}>📢</button>
-            </div>
-
-            <h3 className="text-3xl font-black text-white tracking-wide">{vocabularyData[listeningIdx]?.word}</h3>
-
-            <div className="flex gap-4 items-center justify-center pt-2">
-              <button onClick={() => setListeningIdx(p => Math.max(0, p - 1))} disabled={listeningIdx === 0} className="px-4 py-2 bg-white text-slate-900 border-2 rounded-xl text-xs font-black disabled:opacity-30">◀ 上一個</button>
-              <span className="font-mono font-black text-white">{listeningIdx + 1} / {vocabularyData.length}</span>
-              <button onClick={() => setListeningIdx(p => Math.min(vocabularyData.length - 1, p + 1))} disabled={listeningIdx === vocabularyData.length - 1} className="px-4 py-2 bg-white text-slate-900 border-2 rounded-xl text-xs font-black disabled:opacity-30">下一個 ▶</button>
-            </div>
-          </div>
+          <ListeningQuiz 
+            vocabularyData={vocabularyData}
+            speechRate={speechRate}
+            setSpeechRate={setSpeechRate}
+            handleSpeak={handleSpeak}
+          />
         )}
 
-        {/* 6. 🧠 核心測驗 */}
+      {/* 6. 🧠 核心測驗 */}
         {currentMode === 'quiz' && (
           <div className="max-w-md mx-auto">
             {!isQuizFinished ? (
