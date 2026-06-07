@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { vocabularyData } from './data/vocabulary';
+import { vocabularyData as initialVocabularyData } from './data/vocabulary'; 
 import DeepDive from './components/DeepDive';
 import SpeedTyping from './components/SpeedTyping';
 import BlockBlast from './components/BlockBlast';
-import ListeningQuiz from './components/ListeningQuiz'; // Gọi chính xác component riêng biệt
+import ListeningQuiz from './components/ListeningQuiz'; 
 import UserProfile from './components/UserProfile';
 import CourseSyllabus from './components/CourseSyllabus';
 import Flashcard from './components/Flashcard'; 
@@ -13,6 +13,17 @@ function App() {
   const [currentMode, setCurrentMode] = useState('syllabus'); 
   const [userNotes, setUserNotes] = useState({});
   const [activeNoteText, setActiveNoteText] = useState('');
+
+  // --- STATE QUẢN LÝ TỪ VỰNG DÀNH CHO THANH NHẬP MỚI ---
+  const [vocabularyData, setVocabularyData] = useState(initialVocabularyData);
+  const [newWord, setNewWord] = useState('');
+  const [newMeaning, setNewMeaning] = useState('');
+  const [newExample, setNewExample] = useState('');
+  const [newGrammar, setNewGrammar] = useState(''); 
+  const [newStructure, setNewStructure] = useState(''); // 🔥 Thêm State mới cho Mẫu câu gợi ý
+
+  // --- STATE ĐIỀU KHIỂN ĐÓNG/MỞ THANH THÊM TỪ NHO NHỎ ---
+  const [isFormExpanded, setIsFormExpanded] = useState(false);
 
   // --- MODES STATE ---
   const [diveIdx, setDiveIdx] = useState(0);
@@ -24,6 +35,8 @@ function App() {
   const [speechRate, setSpeechRate] = useState(0.85);
   
   // --- STATE CORE QUIZ ---
+  const [quizStage, setQuizStage] = useState(1);
+  const [stageQuestions, setStageQuestions] = useState([]);
   const [quizIdx, setQuizIdx] = useState(0);
   const [quizScore, setQuizScore] = useState(0);
   const [quizOptions, setQuizOptions] = useState([]);
@@ -40,11 +53,35 @@ function App() {
   const [galSearch, setGalSearch] = useState('');
   const [galFilter, setGalFilter] = useState('all'); 
 
+  // --- HÀM XỬ LÝ THÊM TỪ VỰNG MỚI ---
+  const handleAddNewWord = (e) => {
+    e.preventDefault();
+    if (!newWord.trim() || !newMeaning.trim()) {
+      alert('請輸入英文單字與中文釋義！');
+      return;
+    }
+    const newVocabItem = {
+      id: Date.now().toString(),
+      word: newWord.trim(),
+      meaningZh: newMeaning.trim(),
+      example: newExample.trim() || 'No example context provided.',
+      grammar: newGrammar.trim() || '名詞', 
+      structure: newStructure.trim() || '常用句型' // 🔥 Lưu mẫu câu người dùng tự nhập vào dữ liệu từ vựng
+    };
+    setVocabularyData(prev => [newVocabItem, ...prev]);
+    setNewWord('');
+    setNewMeaning('');
+    setNewExample('');
+    setNewGrammar('');
+    setNewStructure(''); // 🔥 Reset ô nhập mẫu câu gợi ý
+    setIsFormExpanded(false); 
+  };
+
   useEffect(() => {
     if (vocabularyData[diveIdx]) {
       setActiveNoteText(userNotes[vocabularyData[diveIdx].id] || '');
     }
-  }, [diveIdx, userNotes]);
+  }, [diveIdx, userNotes, vocabularyData]);
 
   const saveNote = () => {
     if (vocabularyData[diveIdx]) {
@@ -52,26 +89,50 @@ function App() {
     }
   };
 
+  const initNewStage = (stageNumber) => {
+    const shuffled = [...vocabularyData].sort(() => 0.5 - Math.random());
+    const sliceTen = shuffled.slice(0, 10);
+    setStageQuestions(sliceTen);
+    setQuizStage(stageNumber);
+    setQuizIdx(0);
+    setQuizScore(0);
+    setSelectedAnswer(null);
+    setIsQuizFinished(false);
+  };
+
   useEffect(() => {
-    if (currentMode === 'quiz' && !isQuizFinished) {
-      const currentWord = vocabularyData[quizIdx];
+    if (currentMode === 'quiz' && stageQuestions.length === 0) {
+      initNewStage(1);
+    }
+  }, [currentMode, stageQuestions]);
+
+  useEffect(() => {
+    if (currentMode === 'quiz' && !isQuizFinished && stageQuestions.length > 0) {
+      const currentWord = stageQuestions[quizIdx];
       if (currentWord) {
-        const rands = vocabularyData.filter(v => v.id !== currentWord.id).sort(() => 0.5 - Math.random()).slice(0, 3);
+        const rands = vocabularyData
+          .filter(v => v.id !== currentWord.id)
+          .sort(() => 0.5 - Math.random())
+          .slice(0, 3);
         setQuizOptions([...rands, currentWord].sort(() => 0.5 - Math.random()));
         setSelectedAnswer(null);
       }
     }
-  }, [quizIdx, currentMode, isQuizFinished]);
+  }, [quizIdx, currentMode, isQuizFinished, stageQuestions, vocabularyData]);
 
-  const handleSelectQuizAnswer = (optionWord) => {
+  const handleSelectQuizAnswer = (option) => {
     if (selectedAnswer !== null) return; 
-    setSelectedAnswer(optionWord);
-    const isCorrect = optionWord === vocabularyData[quizIdx]?.word;
+    setSelectedAnswer(option);
+
+    const optionText = typeof option === 'object' ? option?.word : option;
+    const correctText = stageQuestions[quizIdx]?.word;
+
+    const isCorrect = optionText === correctText;
     if (isCorrect) {
       setQuizScore(prev => prev + 10);
     }
     setTimeout(() => {
-      if (quizIdx < vocabularyData.length - 1) {
+      if (quizIdx < 9) {
         setQuizIdx(prev => prev + 1);
       } else {
         setIsQuizFinished(true);
@@ -85,9 +146,27 @@ function App() {
 
   const initBlockGame = () => {
     const items = [...vocabularyData].sort(() => 0.5 - Math.random()).slice(0, 6);
-    const wordBlocks = items.map(v => ({ id: `w-${v.id}`, pairId: v.id, text: v.word, type: 'word', cleared: false }));
-    const meanBlocks = items.map(v => ({ id: `m-${v.id}`, pairId: v.id, text: v.meaningZh, type: 'mean', cleared: false }));
-    setGameBlocks([...wordBlocks, meanBlocks].flat().sort(() => 0.5 - Math.random()));
+    
+    const wordBlocks = items.map(v => ({ 
+      id: `w-${v.id}`, 
+      pairId: v.id, 
+      text: v.word, 
+      type: 'word', 
+      cleared: false 
+    }));
+    
+    const meanBlocks = items.map(v => ({ 
+      id: `m-${v.id}`, 
+      pairId: v.id, 
+      text: v.meaningZh, 
+      type: 'mean', 
+      cleared: false 
+    }));
+    
+    const shuffledWords = [...wordBlocks].sort(() => 0.5 - Math.random());
+    const shuffledMeans = [...meanBlocks].sort(() => 0.5 - Math.random());
+
+    setGameBlocks([...shuffledWords, ...shuffledMeans]);
     setSelectedBlock(null);
     setGameScore(0);
   };
@@ -158,6 +237,16 @@ function App() {
       "Memorable": { structures: ["A memorable journey"], grammar: "形容詞" },
       "Privacy": { structures: ["Respect someone's privacy"], grammar: "名詞" }
     };
+    
+    // 🔥 Kiểm tra xem từ hiện hành có thuộc nhóm từ mới được người dùng tự nhập hay không
+    const customWord = vocabularyData.find(v => v.word === word);
+    if (customWord) {
+      return { 
+        structures: [customWord.structure || "常用句型"], // Ưu tiên hiển thị mẫu câu đã nhập thủ công
+        grammar: customWord.grammar || "詞性分析" 
+      };
+    }
+
     return analysisMap[word] || { structures: ["常用句型"], grammar: "詞性分析" };
   };
 
@@ -172,7 +261,6 @@ function App() {
       }}
     >
       
-      {/* KHU VỰC CSS FIX */}
       <style>{`
         *, body, div, h1, h2, h3, h4, h5, h6, p, span, label, button, input, textarea, li, strong {
           font-family: "Brandon Grotesque", "Helvetica Neue", Arial, sans-serif !important;
@@ -232,42 +320,51 @@ function App() {
       
       {/* HEADER BAR */}
       <header 
-        className="max-w-5xl mx-auto py-4 px-6 flex flex-col md:flex-row justify-between items-center gap-4 mb-8"
+        className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 mb-8"
         style={{
           backgroundColor: '#0284C7', 
           borderRadius: '24px',
-          border: '4px solid #0EA5E9', 
-          boxShadow: '0 8px #0369A1',
-          color: '#FFFFFF'
+          border: '4px solid #1e293b', 
+          shadow: '0 8px #1e293b',
+          color: '#FFFFFF',
+          overflow: 'hidden'
         }}
       >
-        <div className="flex items-center gap-3">
+        {/* LOGO */}
+        <div className="flex items-center gap-3 p-4 md:pl-6 w-full md:w-auto">
           <div 
-            className="w-12 h-12 flex items-center justify-center text-2xl animate-bounce"
+            className="w-11 h-11 flex items-center justify-center text-xl animate-bounce"
             style={{
               backgroundColor: '#38BDF8',
-              borderRadius: '16px',
-              borderBottom: '4px solid #0284C7'
+              borderRadius: '14px',
+              border: '2.5px solid #1e293b',
+              borderBottom: '5px solid #1e293b'
             }}
           >
             🦊
           </div>
           <div>
-            <h1 className="text-3xl font-black tracking-wider text-white" style={{ fontWeight: '900', color: '#FFFFFF' }}>
+            <h1 className="text-2xl font-black tracking-wider text-white" style={{ fontWeight: '950', color: '#FFFFFF' }}>
               WordPulse
             </h1>
-            <p className="text-[11px] uppercase font-black tracking-widest text-[#E0F2FE]">
+            <p className="text-[10px] uppercase font-black tracking-widest text-[#BAE6FD]">
               TW / EN 沉浸式學習空間
             </p>
           </div>
         </div>
 
-        {/* MENU TABS */}
+        {/* THANH MENU ĐIỀU HƯỚNG */}
         <nav 
-          className="flex flex-wrap justify-center gap-2 p-2 rounded-2xl"
           style={{
-            backgroundColor: '#0369A1', 
-            border: '3px solid #0EA5E9'
+            backgroundColor: '#133087', 
+            borderLeft: '4px solid #1e293b',
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'stretch',
+            width: '100%',
+            flex: 1,
+            overflowX: 'auto', 
+            boxSizing: 'border-box'
           }}
         >
           {[
@@ -280,20 +377,29 @@ function App() {
             { id: 'game', label: '🧩 連連看' },
             { id: 'profile', label: '👤 個人簡介' },
             { id: 'syllabus', label: '📚 本學期課程' }
-          ].map(nav => {
+          ].map((nav, index, arr) => {
             const isActive = currentMode === nav.id;
             return (
               <button 
                 key={nav.id} 
                 onClick={() => { setCurrentMode(nav.id); }} 
-                className="px-3 py-2 rounded-xl text-xs font-black uppercase transition-all"
+                className="transition-all"
                 style={{
-                  backgroundColor: isActive ? '#FFFFFF' : '#0284C7',
-                  color: isActive ? '#0369A1' : '#FFFFFF', 
-                  border: isActive ? '2px solid #38BDF8' : '2px solid #0284C7',
-                  borderBottom: isActive ? '5px solid #38BDF8' : '4px solid #0284C7',
-                  transform: isActive ? 'translateY(1px)' : 'none',
-                  cursor: 'pointer'
+                  flex: '1 1 0%', 
+                  minWidth: '90px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '16px 8px',
+                  fontSize: '14px', 
+                  fontWeight: '500', 
+                  whiteSpace: 'nowrap', 
+                  cursor: 'pointer',
+                  backgroundColor: isActive ? '#FFFFFF' : 'transparent',
+                  color: isActive ? '#133087' : '#FFFFFF', 
+                  border: 'none',
+                  borderRight: index === arr.length - 1 ? 'none' : '3px solid #1e293b',
+                  boxSizing: 'border-box'
                 }}
               >
                 {nav.label}
@@ -303,6 +409,124 @@ function App() {
         </nav>
       </header>
 
+      {/* 🌟 THANH THÊM TỪ THU GỌN / MỞ RỘNG THÔNG MINH 🌟 */}
+      <div 
+        className="max-w-5xl mx-auto mb-6"
+        style={{
+          backgroundColor: '#F1F5F9',
+          border: '3px solid #1E293B',
+          borderRadius: '16px',
+          boxShadow: '0 5px 0 #1E293B',
+          overflow: 'hidden',
+          transition: 'all 0.3s ease'
+        }}
+      >
+        {/* Trạng thái 1: Chỉ hiện duy nhất một thanh nhỏ nhỏ ban đầu */}
+        {!isFormExpanded ? (
+          <div 
+            onClick={() => setIsFormExpanded(true)}
+            style={{
+              padding: '10px 18px',
+              cursor: 'pointer',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              backgroundColor: '#F1F5F9',
+              userSelect: 'none'
+            }}
+          >
+            <div style={{ fontSize: '14px', fontWeight: '900', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>➕</span> 新增單字 (點擊此處展開欄位...)
+            </div>
+            <div style={{ fontSize: '12px', fontWeight: '800', backgroundColor: '#E2E8F0', padding: '4px 10px', borderRadius: '8px', border: '1.5px solid #1E293B' }}>
+              展開 🔽
+            </div>
+          </div>
+        ) : (
+          /* Trạng thái 2: Sau khi bấm vào sẽ xổ ra đầy đủ form điền dữ liệu */
+          <div style={{ padding: '20px' }}>
+            <div 
+              onClick={() => setIsFormExpanded(false)}
+              style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                marginBottom: '14px', paddingBottom: '10px', borderBottom: '2px dashed #CBD5E1', cursor: 'pointer'
+              }}
+            >
+              <span style={{ fontSize: '13px', fontWeight: '900', color: '#1E293B' }}>📝 請填寫單字資訊:</span>
+              <span style={{ fontSize: '10px', fontWeight: '800', backgroundColor: '#FFE4E6', color: '#E11D48', padding: '4px 10px', borderRadius: '8px', border: '1.5px solid #1E293B' }}>
+                收起 🔼
+              </span>
+            </div>
+
+            <form onSubmit={handleAddNewWord} className="flex flex-col gap-4 w-full">
+              {/* Hàng 1: Từ vựng & Nghĩa tiếng Trung & Từ loại */}
+              <div className="flex flex-col md:flex-row gap-3 w-full">
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '900', marginBottom: '5px', color: '#1E293B' }}>英文單字 (English Word)*</label>
+                  <input 
+                    type="text" required value={newWord} onChange={(e) => setNewWord(e.target.value)}
+                    placeholder="例如: Unique"
+                    style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', border: '2.5px solid #1E293B', fontSize: '13px', fontWeight: '800', color: '#1E293B', outline: 'none', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '900', marginBottom: '5px', color: '#1E293B' }}>中文釋義 (Chinese Meaning)*</label>
+                  <input 
+                    type="text" required value={newMeaning} onChange={(e) => setNewMeaning(e.target.value)}
+                    placeholder="例如: 獨特的"
+                    style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', border: '2.5px solid #1E293B', fontSize: '13px', fontWeight: '800', color: '#1E293B', outline: 'none', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div style={{ flex: 0.7 }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '900', marginBottom: '5px', color: '#1E293B' }}>詞性 (Part of Speech)</label>
+                  <input 
+                    type="text" value={newGrammar} onChange={(e) => setNewGrammar(e.target.value)}
+                    placeholder="例如: 形容詞"
+                    style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', border: '2.5px solid #1E293B', fontSize: '13px', fontWeight: '800', color: '#1E293B', outline: 'none', boxSizing: 'border-box' }}
+                  />
+                </div>
+              </div>
+
+              {/* Hàng 2: Câu ví dụ ngữ cảnh & 🔥 Mẫu câu gợi ý */}
+              <div className="flex flex-col md:flex-row gap-3 w-full">
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '900', marginBottom: '5px', color: '#1E293B' }}>情境例句 (Context Example)</label>
+                  <input 
+                    type="text" value={newExample} onChange={(e) => setNewExample(e.target.value)}
+                    placeholder="例如: Each person's fingerprints are unique."
+                    style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', border: '2.5px solid #1E293B', fontSize: '13px', fontWeight: '800', color: '#1E293B', outline: 'none', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '900', marginBottom: '5px', color: '#1E293B' }}>推薦句型 (Recommended Structure)</label>
+                  <input 
+                    type="text" value={newStructure} onChange={(e) => setNewStructure(e.target.value)}
+                    placeholder="例如: It is unique to [someone/somewhere]"
+                    style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', border: '2.5px solid #1E293B', fontSize: '13px', fontWeight: '800', color: '#1E293B', outline: 'none', boxSizing: 'border-box' }}
+                  />
+                </div>
+              </div>
+
+              {/* Nút hành động */}
+              <div className="flex justify-end gap-3 mt-1">
+                <button 
+                  type="submit"
+                  style={{
+                    backgroundColor: '#38BDF8', color: '#1E293B', padding: '11px 28px', borderRadius: '10px',
+                    border: '2.5px solid #1E293B', boxShadow: '0 3.5px 0 #1E293B', fontSize: '13px', fontWeight: '900',
+                    cursor: 'pointer', transition: 'all 0.1s'
+                  }}
+                  onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(2px)'; e.currentTarget.style.boxShadow = '0 1.5px 0 #1E293B'; }}
+                  onMouseUp={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 3.5px 0 #1E293B'; }}
+                >
+                  儲存單字 💾
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+      </div>
+      
       {/* MAIN BLUE CONTAINER */}
       <main 
         className="max-w-5xl mx-auto main-blue-container" 
@@ -310,8 +534,8 @@ function App() {
           backgroundColor: currentMode === 'card' ? '#0081cc' : '#0284C7', 
           padding: '32px', 
           borderRadius: '32px', 
-          border: '4px solid #38BDF8', 
-          boxShadow: '0 10px 0 #0369A1' 
+          border: '4px solid #1e293b', 
+          boxShadow: '0 10px 0 #1e293b' 
         }}
       >
         
@@ -374,7 +598,7 @@ function App() {
                   "{vocabularyData[diveIdx]?.example}"
                 </p>
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', justifyQontent: 'center', gap: '12px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '12px' }}>
                 <span style={{ backgroundColor: '#f1f5f9', color: '#475569', padding: '8px 14px', borderRadius: '12px', fontSize: '13px', fontWeight: '700' }}>
                   🏷️ 詞性: {getSentenceAnalysis(vocabularyData[diveIdx]?.word).grammar}
                 </span>
@@ -384,7 +608,7 @@ function App() {
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyQontent: 'center', gap: '20px', margin: '24px 0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', margin: '24px 0' }}>
               <button onClick={() => setDiveIdx(p => Math.max(0, p - 1))} disabled={diveIdx === 0} style={{ padding: '10px 20px', backgroundColor: '#ffffff', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' }}>◀ 上一個</button>
               <span style={{ fontSize: '16px', fontWeight: '900', color: '#ffffff' }}>{diveIdx + 1} / {vocabularyData.length}</span>
               <button onClick={() => setDiveIdx(p => Math.min(vocabularyData.length - 1, p + 1))} disabled={diveIdx === vocabularyData.length - 1} style={{ padding: '10px 20px', backgroundColor: '#ffffff', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' }}>下一個 ▶</button>
@@ -398,7 +622,7 @@ function App() {
         {/* 3. 🖼️ 單字庫 */}
         {currentMode === 'gallery' && <VocabularyBank vocabularyData={vocabularyData} />}
 
-        {/* 4. ⌨️ 拼字輸入 - SỬA LỖI LỆCH VÀ TRÀN KHUNG INPUT */}
+        {/* 4. ⌨️ 拼字輸入 */}
         {currentMode === 'typing' && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
             <div style={{ 
@@ -426,14 +650,13 @@ function App() {
                 </div>
               </div>
 
-              <span style={{ display: 'block', fontSize: '11px', fontWeight: '900', color: '#94a3b8', trackingSpace: '1px', uppercase: true, marginBottom: '4px' }}>
+              <span style={{ display: 'block', fontSize: '11px', fontWeight: '900', color: '#94a3b8', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>
                 CHINESE MEANING
               </span>
               <h3 style={{ fontSize: '28px', fontWeight: '900', color: '#0f172a', margin: '0 0 28px 0' }}>
                 👉 {vocabularyData[typingIdx]?.meaningZh}
               </h3>
 
-              {/* Bọc form có maxWidth để Input không bị tràn bè ra 2 bên */}
               <form 
                 onSubmit={handleTypingSubmit} 
                 style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '440px', margin: '0 auto' }}
@@ -492,65 +715,81 @@ function App() {
           />
         )}
 
-      {/* 6. 🧠 核心測驗 */}
-        {currentMode === 'quiz' && (
-          <div className="max-w-md mx-auto">
+        {/* 6. 🧠 CORE QUIZ */}
+        {currentMode === 'quiz' && stageQuestions.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', padding: '12px 0' }}>
             {!isQuizFinished ? (
-              <div className="rounded-3xl p-6 relative" style={{ backgroundColor: '#0369A1', border: '4px solid #38BDF8', boxShadow: '0 8px #38BDF8' }}>
-                <div className="flex justify-between items-center mb-6">
-                  <span className="text-xs font-black tracking-wider bg-sky-100 text-sky-800 px-3 py-1.5 rounded-full border border-sky-300">
-                    🎯 題目 {quizIdx + 1} / {vocabularyData.length}
-                  </span>
-                  <span className="text-xs font-black tracking-wider bg-emerald-100 text-emerald-800 px-3 py-1.5 rounded-full border border-emerald-300">
-                    ⭐ 得分: {quizScore}
-                  </span>
+              <div style={{ backgroundColor: '#ffffff', borderRadius: '32px', padding: '40px 32px', width: '100%', maxWidth: '580px', boxShadow: '0 24px 48px rgba(15, 23, 42, 0.12)', border: '3.5px solid #1e293b', boxSizing: 'border-box' }}>
+                
+                <div style={{ marginBottom: '28px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '6px 14px', borderRadius: '14px', fontSize: '14px', fontWeight: '900', border: '2.5px solid #1e293b' }}>
+                      🎯 Question {quizIdx + 1}/10
+                    </span>
+                    <span style={{ backgroundColor: '#fffbeb', color: '#b45309', padding: '6px 14px', borderRadius: '14px', fontSize: '14px', fontWeight: '900', border: '2.5px solid #1e293b' }}>
+                      ⭐ Score: {quizScore}
+                    </span>
+                  </div>
+                  
+                  <div style={{ width: '100%', height: '14px', backgroundColor: '#e2e8f0', borderRadius: '12px', border: '2.5px solid #1e293b', overflow: 'hidden' }}>
+                    <div style={{ width: `${((quizIdx + 1) / 10) * 100}%`, height: '100%', backgroundColor: '#38bdf8', transition: 'width 0.3s ease-out' }} />
+                  </div>
                 </div>
 
-                <div className="quiz-question-box mb-6 text-center py-5 bg-white border-2 border-[#38BDF8] rounded-2xl px-4">
-                  <p className="text-xs font-black uppercase tracking-wider text-sky-600 mb-1">請選擇對應的英文單字：</p>
-                  <h3 className="text-2xl font-black">👉 {vocabularyData[quizIdx]?.meaningZh}</h3>
+                <div style={{ backgroundColor: '#f8fafc', border: '2.5px solid #1e293b', borderRadius: '24px', padding: '28px 20px', textAlign: 'center', marginBottom: '28px', boxShadow: '0 6px 0px #e2e8f0', minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                  <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8', letterSpacing: '1.5px', textTransform: 'uppercase', display: 'block', marginBottom: '12px' }}>
+                    HOW DO YOU SAY THIS IN ENGLISH?
+                  </span>
+                  <h3 style={{ fontSize: '24px', fontWeight: '900', color: '#1e293b', margin: 0 }}>
+                    {stageQuestions[quizIdx]?.meaningZh}
+                  </h3>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                   {quizOptions.map((option, idx) => {
-                    const isCurrentSelected = selectedAnswer === option.word;
-                    const isCorrectAnswer = option.word === vocabularyData[quizIdx]?.word;
+                    const optionText = typeof option === 'object' ? option?.word : option;
+                    const correctText = stageQuestions[quizIdx]?.word;
+                    const isSelected = selectedAnswer === option;
+                    const isCorrectAnswer = optionText === correctText;
                     
-                    let btnStyle = { backgroundColor: '#0EA5E9', borderColor: '#7DD3FC' };
+                    let btnBg = '#ffffff';
+                    let btnColor = '#1e293b';
+                    let borderCol = '#1e293b';
+
                     if (selectedAnswer !== null) {
-                      if (isCurrentSelected) {
-                        btnStyle = isCorrectAnswer 
-                          ? { backgroundColor: '#10B981', borderColor: '#047857' } 
-                          : { backgroundColor: '#EF4444', borderColor: '#B91C1C' };
-                      } else if (isCorrectAnswer) {
-                        btnStyle = { backgroundColor: '#059669', borderColor: '#34D399' };
-                      } else {
-                        btnStyle = { backgroundColor: '#0284C7', borderColor: '#0369A1', opacity: 0.4 };
+                      if (isCorrectAnswer) {
+                        btnBg = '#bbf7d0';
+                        btnColor = '#166534';
+                        borderCol = '#166534';
+                      } else if (isSelected) {
+                        btnBg = '#fecaca';
+                        btnColor = '#991b1b';
+                        borderCol = '#991b1b';
                       }
                     }
 
                     return (
-                      <button 
-                        key={idx} 
-                        onClick={() => handleSelectQuizAnswer(option.word)} 
-                        disabled={selectedAnswer !== null} 
-                        className="quiz-option-btn-default w-full p-4 rounded-xl border-2 font-black text-sm text-left border-b-4 transition-all flex items-center"
-                        style={{ ...btnStyle }}
+                      <button
+                        key={idx}
+                        onClick={() => handleSelectQuizAnswer(option)}
+                        style={{
+                          width: '100%', padding: '16px 20px', backgroundColor: btnBg, color: btnColor,
+                          borderRadius: '16px', border: `2.5px solid ${borderCol}`, fontSize: '16px', fontWeight: '800',
+                          textAlign: 'left', cursor: selectedAnswer !== null ? 'default' : 'pointer', transition: 'all 0.15s',
+                          boxShadow: selectedAnswer !== null && isSelected ? 'none' : '0 4px 0 #1e293b'
+                        }}
                       >
-                        <span className="inline-block w-6 h-6 rounded-lg bg-white/20 text-center leading-6 text-xs mr-3 font-bold text-white">{idx + 1}</span>
-                        {option.word}
+                        {optionText}
                       </button>
                     );
                   })}
                 </div>
               </div>
             ) : (
-              <div className="bg-white border-4 border-[#38BDF8] rounded-3xl p-8 text-center shadow-[0_8px_0_0_#0369A1] space-y-4">
-                <div className="text-5xl">🏆</div>
-                <h3 className="text-2xl font-black">✨ 恭喜完成本次測驗！ ✨</h3>
-                <p className="text-sm font-bold text-slate-400 uppercase tracking-wider">您的最終得分</p>
-                <span className="text-5xl font-black block py-2 text-sky-600">{quizScore} / {vocabularyData.length * 10}</span>
-                <button onClick={() => { setQuizIdx(0); setQuizScore(0); setIsQuizFinished(false); setSelectedAnswer(null); }} className="w-full py-3.5 bg-[#0284C7] border-b-4 border-[#0369A1] text-white font-black rounded-xl text-xs uppercase tracking-wider active:translate-y-0.5 transition-all">重新挑戰 🚀</button>
+              <div style={{ backgroundColor: '#ffffff', borderRadius: '32px', padding: '40px 32px', width: '100%', maxWidth: '480px', textAlign: 'center', border: '3.5px solid #1e293b' }}>
+                <h2>🎉 Stage {quizStage} Completed!</h2>
+                <p>Final Score: {quizScore}/100</p>
+                <button onClick={() => initNewStage(quizStage + 1)} style={{ padding: '12px 24px', backgroundColor: '#38bdf8', borderRadius: '12px', fontWeight: '900', border: '2.5px solid #1e293b', cursor: 'pointer' }}>Next Stage 🚀</button>
               </div>
             )}
           </div>
@@ -558,37 +797,22 @@ function App() {
 
         {/* 7. 🧩 連連看 */}
         {currentMode === 'game' && (
-          <div className="game-block-fix">
-            <BlockBlast gameScore={gameScore} initBlockGame={initBlockGame} gameBlocks={gameBlocks} selectedBlock={selectedBlock} shakeBlockId={shakeBlockId} handleBlockClick={handleBlockClick} />
-          </div>
+          <BlockBlast 
+            gameBlocks={gameBlocks}
+            selectedBlock={selectedBlock}
+            gameScore={gameScore}
+            shakeBlockId={shakeBlockId}
+            handleBlockClick={handleBlockClick}
+            initBlockGame={initBlockGame}
+          />
         )}
 
         {/* 8. 👤 個人簡介 */}
-        {currentMode === 'profile' && (
-          <UserProfile />
-        )}
+        {currentMode === 'profile' && <UserProfile />}
 
         {/* 9. 📚 本學期課程 */}
-        {currentMode === 'syllabus' && (
-          <div 
-            className="course-syllabus-wrapper p-4 rounded-2xl" 
-            style={{ 
-              backgroundColor: '#FFFFFF',
-              color: '#000000',
-            }}
-          >
-            <style>{`
-              .course-syllabus-wrapper *,
-              .course-syllabus-wrapper h3,
-              .course-syllabus-wrapper span,
-              .course-syllabus-wrapper p,
-              .course-syllabus-wrapper div {
-                color: #000000 !important;
-              }
-            `}</style>
-            <CourseSyllabus />
-          </div>
-        )}
+        {currentMode === 'syllabus' && <CourseSyllabus />}
+
       </main>
     </div>
   );

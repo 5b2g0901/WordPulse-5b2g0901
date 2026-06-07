@@ -1,147 +1,304 @@
 import React, { useState } from 'react';
 
 export default function CourseSyllabus() {
-  // Quản lý tuần đang được chọn (Mặc định là tuần đầu tiên - Index 0)
-  const [activeWeekIndex, setActiveWeekIndex] = useState(0);
+  const [activeWeek, setActiveWeek] = useState(1);
 
-  const courseWeeks = [
-    {
-      week: "📅 第一週：穩固基礎與核心概念",
-      shortLabel: "第一週",
-      items: [
-        { title: "JS 複習", details: "箭頭函式 (Arrow Functions)、解構賦值 (Destructuring)、展開運算子 (Spread Operator)、陣列方法 (map, filter)、ES Modules (import/export)。" },
-        { title: "React 基礎", details: "JSX 語法（在 JS 中寫 HTML）、組件 (Components) 了解 Functional Components、Props（學習如何將資料 từ cha truyền xuống con）。" },
-        { title: "實作練習", details: "建立一個靜態的「個人名片牆」，將姓名、職稱等資訊透過 Props 傳入。" }
+  // Dữ liệu lộ trình học tập chi tiết được tối ưu hóa cấu trúc trực quan
+  const syllabusData = {
+    1: {
+      title: "穩固基礎與核心概念",
+      subtitle: "JavaScript ES6+ 必備心法 & React 核心起步",
+      badge: "Week 01",
+      color: "#0ea5e9",
+      bgLight: "#f0f9ff",
+      topics: [
+        {
+          head: "JS 核心語法複習",
+          desc: "熟練箭頭函式 (Arrow Functions)、解構賦值 (Destructuring) 與展開運算子 (Spread Operator)。"
+        },
+        {
+          head: "進階陣列處理方法",
+          desc: "掌握不修改原陣列的實戰運算：map() 轉換資料、filter() 過濾條件、以及 ES Modules (import/export) 模組化觀念。"
+        },
+        {
+          head: "React JSX 語法與元件架構",
+          desc: "理解如何在 JavaScript 中撰寫聲明式 UI、建立 Functional Components，並透過 Props 進行元件間的單向資料傳遞 (從父組件傳遞數據至子組件)。"
+        },
+        {
+          head: "第一週實作練習任務",
+          desc: "動手建構一個靜態的「個人名片牆」應用程式，練習將姓名、職稱、大頭貼等關鍵資訊封裝透過 Props 注入元件。"
+        }
       ]
     },
-    {
-      week: "📅 第二週：狀態管理與 Hooks 基礎",
-      shortLabel: "第二週",
-      items: [
-        { title: "React 的靈魂", details: "決定了你的網頁如何「互動」。" },
-        { title: "核心 Hooks", details: "useState（學習如何管理組件內部的資料狀態）、useEffect（處理副作用，如：設定定時器、手動修改 DOM）。" },
-        { title: "動態互動", details: "事件處理（onClick, onChange 等事件的綁定）、條件渲染與列表渲染（使用 if/else 或 map() 來動態顯示內容）。" },
-        { title: "實作練習", details: "開發一個簡單的待辦事項清單 (Todo List) 初版。" }
+    2: {
+      title: "狀態管理與事件處理",
+      subtitle: "讓你的 UI 動起來！學會 React 的靈魂 Hook",
+      badge: "Week 02",
+      color: "#bee755",
+      bgLight: "#f0fdf4",
+      topics: [
+        {
+          head: "useState Hook 核心基礎",
+          desc: "理解 React 狀態驅動的本質、如何宣告狀態與正確使用 setter 函數觸發重新渲染 (Re-render)。"
+        },
+        {
+          head: "事件處理與雙向資料綁定",
+          desc: "處理 onClick、onChange 等前端常用事件，實作 Input 表單的雙向資料同步控管。"
+        },
+        {
+          head: "第二週實作練習任務",
+          desc: "打造一個具備動態新增、刪除、標記完成功能的互動式「待辦事項清單 (Todo List)」。"
+        }
       ]
     },
-    {
-      week: "📅 第三週：進階 Hooks 與非同步處理",
-      shortLabel: "第三週",
-      items: [
-        { title: "串接 API", details: "這週開始與後端 API 接軌，讓你的應用程式動起來。" },
-        { title: "效能與 DOM", details: "useRef 與 useMemo/useCallback（學習如何存取 DOM 以及基本的效能優化概念）。" },
-        { title: "資料請求", details: "Fetch API / Axios（學習如何在 useEffect 中呼叫 API 獲取資料）、處理 Loading 與 Error 狀態以提升使用者體驗。" },
-        { title: "表單與實作", details: "表單處理（Controlled vs Uncontrolled Components）。實作：開發一個天氣查詢應用或電影搜尋引擎（串接公用 API，如 OpenWeather 或 TMDB）。" }
+    3: {
+      title: "副作用處理與 API 整合",
+      subtitle: "與外部世界串聯，打造會呼吸的真實應用",
+      badge: "Week 03",
+      color: "#fbb2fd",
+      bgLight: "#eef2ff",
+      topics: [
+        {
+          head: "useEffect 生命週期管理",
+          desc: "搞懂 Component Mount、Update、Unmount 的執行時機，以及相依性陣列 (Dependency Array) 的核心防坑指南。"
+        },
+        {
+          head: "非同步 Fetch 與 API 串接",
+          desc: "利用 async/await 配合 useEffect 從後端獲取真實資料，並處理加載中 (Loading) 與錯誤處理 (Error Handling) 的 UI 狀態。"
+        },
+        {
+          head: "第三週實作練習任務",
+          desc: "串接開源天氣 API 或單字庫，實作一個具備關鍵字搜尋、即時篩選呈現的「動態天氣/單字搜尋儀表板」。"
+        }
       ]
     },
-    {
-      week: "📅 第四週：導覽、樣式與狀態提升",
-      shortLabel: "第四週",
-      items: [
-        { title: "專案擴充", details: "當專案變大時，你需要管理多個頁面與更複雜的樣式。" },
-        { title: "路由與樣式", details: "React Router (v6+)：學習單頁應用 (SPA) 的路由跳轉、動態路由 (useParams)。CSS in JS / Tailwind CSS：美化組件。" },
-        { title: "全域狀態", details: "Lifting State Up（狀態向上提升）、Context API（解決深層傳遞 Props 的問題，管理全域狀態如深淺色模式、登入狀態）。" },
-        { title: "實作練習", details: "建立一個多頁面的個人作品集網站。" }
+    4: {
+      title: "進階元件設計與效能優化",
+      subtitle: "架構規模化！從普通網頁走向大型專案架構",
+      badge: "Week 04",
+      color: "#f59e0b",
+      bgLight: "#fffbeb",
+      topics: [
+        {
+          head: "Children Props & 組合模式",
+          desc: "利用 props.children 設計靈活且可重複利用的彈出視窗 (Modal) 或卡片外殼 (Layout Components)。"
+        },
+        {
+          head: "React 樣式解決方案",
+          desc: "活用 CSS Modules 或是 Tailwind CSS 進行現代化元件樣式隔離，防止全域命名衝突。"
+        },
+        {
+          head: "第四週實作練習任務",
+          desc: "重構 WordPulse 的 UI 模組，並封裝出一套可跨頁面重複使用的「復古潮流風彈出式對話盒組件」。"
+        }
       ]
     },
-    {
-      week: "📅 第五週：綜合實戰與部署",
-      shortLabel: "第五週",
-      items: [
-        { title: "終極目標", details: "這週的目標是完成一個可以放進履歷的完整作品。" },
-        { title: "綜合實作", details: "開發一個簡易電商購物車或社群貼文牆。功能需包含：商品列表、加入購物車、刪除項目、計算總額、路由切換。" },
-        { title: "優化與上線", details: "效能優化與測試基礎（React.memo 的使用時機）、部署 (Deployment)：學習使用 Vercel 或 Netlify 將你的 React 專案上線。" },
-        { title: "複習整理", details: "回顧這五週的程式碼，並試著用自己的話解釋 React 的資料流。" }
+    5: {
+      title: "專案總結與雲端部署",
+      subtitle: "完美收尾！將你的心血結晶分享給全網絡",
+      badge: "Week 05",
+      color: "#a1f0a9",
+      bgLight: "#fdf2f8",
+      topics: [
+        {
+          head: "React 專案打包構建",
+          desc: "理解 Vite / Webpack 的 Build 機制，將開發環境原始碼壓縮優化為瀏覽器可讀的純靜態檔案。"
+        },
+        {
+          head: "現代化雲端平台部署實戰",
+          desc: "學習使用 GitHub 進行版本控制，並一鍵整合部署至 Vercel 或 Netlify 免費網頁代管空間。"
+        },
+        {
+          head: "第五週終極期末任務",
+          desc: "將 WordPulse 核心功能完成全面優化，並成功部署發布上線，產出可以放進個人履歷的亮眼作品！"
+        }
       ]
     }
-  ];
+  };
 
-  const currentWeekData = courseWeeks[activeWeekIndex];
+  const currentSyllabus = syllabusData[activeWeek];
 
   return (
-    <div className="w-full space-y-6 animate-fadeIn">
-      {/* 1. Tiêu đề lớn bên ngoài (Chữ trắng trên nền xanh của Container) */}
-      <div className="text-center space-y-1">
-        <h2 className="text-3xl font-black text-white" style={{ color: '#FFFFFF' }}>本學期課程進度表</h2>
-        <p className="text-sm font-bold text-sky-200 uppercase tracking-widest" style={{ color: '#BAE6FD' }}>本學期課程進度 React & JavaScript</p>
+    <div className="w-full qz-wrapper" style={{ padding: '8px 0', color: '#1e293b' }}>
+      
+      {/* 頂部大標題區塊 */}
+      <div style={{
+        textAlign: 'center',
+        marginBottom: '36px',
+        borderBottom: '4px solid #1e293b',
+        paddingBottom: '24px'
+      }}>
+        <div style={{
+          display: 'inline-block',
+          backgroundColor: '#9cb4e4',
+          color: '#ffffff',
+          padding: '6px 16px',
+          borderRadius: '12px',
+          fontSize: '12px',
+          fontWeight: '900',
+          letterSpacing: '2px',
+          textTransform: 'uppercase',
+          marginBottom: '12px'
+        }}>
+          💡 LEARNING ROADMAP
+        </div>
+        <h2 style={{ fontSize: '32px', fontWeight: '950', color: '#1e293b', margin: '0 0 8px 0' }}>
+          本學期課程進度表
+        </h2>
+        <p style={{ fontSize: '15px', fontWeight: '700', color: '#64748b', margin: 0 }}>
+          前端核心技術奠基：<span style={{ color: '#0284c7', textDecoration: 'underline' }}>React & JavaScript</span> 實戰全解析
+        </p>
       </div>
 
-      {/* 2. THANH CHỌN TUẦN NHANH */}
-      <div className="flex flex-wrap justify-center gap-2 p-2 rounded-2xl bg-sky-900/30 border border-sky-400/20 max-w-2xl mx-auto">
-        {courseWeeks.map((w, index) => {
-          const isActive = activeWeekIndex === index;
+      {/* 週數切換頁籤 (TAB BUTTONS) */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
+        gap: '12px',
+        marginBottom: '36px'
+      }}>
+        {[1, 2, 3, 4, 5].map((weekNum) => {
+          const isActive = activeWeek === weekNum;
+          const weekColor = syllabusData[weekNum].color;
+          
           return (
             <button
-              key={index}
-              onClick={() => setActiveWeekIndex(index)}
-              className="px-4 py-2 rounded-xl text-xs font-black transition-all transform active:scale-95"
+              key={weekNum}
+              onClick={() => setActiveWeek(weekNum)}
               style={{
-                backgroundColor: isActive ? '#FFFFFF' : '#5cb8e5',
-                color: isActive ? '#000000' : '#FFFFFF',
-                border: isActive ? '2px solid #000000' : '2px solid transparent',
-                borderBottom: isActive ? '5px solid #000000' : '4px solid #0369A1',
-                cursor: 'pointer'
+                backgroundColor: isActive ? weekColor : '#ffffff',
+                color: isActive ? '#ffffff' : '#1e293b',
+                padding: '14px 10px',
+                borderRadius: '16px',
+                fontSize: '14px',
+                fontWeight: '900',
+                border: '3px solid #1e293b',
+                boxShadow: isActive ? 'none' : '0 5px 0 #1e293b',
+                transform: isActive ? 'translateY(5px)' : 'none',
+                cursor: 'pointer',
+                transition: 'all 0.1s ease',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '2px',
+                boxSizing: 'border-box'
               }}
             >
-              {isActive ? `📍 ${w.shortLabel}` : w.shortLabel}
+              <span style={{ fontSize: '10px', opacity: isActive ? 0.8 : 0.5, textTransform: 'uppercase' }}>
+                WEEK
+              </span>
+              <span style={{ fontSize: '18px', fontWeight: '950' }}>
+                0{weekNum}
+              </span>
             </button>
           );
         })}
       </div>
 
-      {/* 3. KHỐI NỘI DUNG CHI TIẾT THEO TUẦN */}
-      <div className="pt-2 max-w-4xl mx-auto">
-        {currentWeekData && (
-          <div 
-            className="p-6 rounded-2xl border-2 shadow-md"
-            style={{
-              backgroundColor: '#FFFFFF', 
-              borderColor: '#000000'       
-            }}
-          >
-            {/* TIÊU ĐỀ TUẦN: Giữ nguyên Đậm nét (font-black) để làm điểm nhấn chính */}
-            <h3 
-              className="text-xl font-black border-b-2 border-dashed pb-3 mb-5 flex items-center"
-              style={{ color: '#000000', borderColor: '#000000', fontWeight: '900' }}
-            >
-              {currentWeekData.week}
-            </h3>
-
-            {/* TOÀN BỘ PHẦN NỘI DUNG BÊN DƯỚI ĐỀU VIẾT THƯỜNG (fontWeight: '400') */}
-            <div className="space-y-4 pl-1">
-              {currentWeekData.items.map((item, idx) => (
-                <div key={idx} className="flex flex-col sm:flex-row sm:items-start text-sm gap-2 sm:gap-0">
-                  
-                  {/* Nhãn bài học (Ví dụ: 🚀 JS 複習): Đã chuyển sang chữ thường bình thường, không in đậm */}
-                  <span 
-                    className="inline-block bg-white border-2 px-2.5 py-0.5 rounded-xl text-xs mr-3 shadow-sm shrink-0"
-                    style={{ 
-                      color: '#000000', 
-                      borderColor: '#000000',
-                      minWidth: '105px',
-                      textAlign: 'center',
-                      fontWeight: '400' /* Thay đổi từ 800 thành 400 (Chữ thường) */
-                    }}
-                  >
-                    🚀 {item.title}
-                  </span>
-                  
-                  {/* Chi tiết bài học: Giữ nguyên chữ thường bình thường, màu đen rõ nét */}
-                  <span 
-                    className="leading-relaxed flex-1 pt-0.5 text-xs sm:text-sm"
-                    style={{ 
-                      color: '#000000', 
-                      fontWeight: '400' /* Chữ thường mảnh */
-                    }}
-                  >
-                    {item.details}
-                  </span>
-
-                </div>
-              ))}
-            </div>
+      {/* 主要內容展示卡片 */}
+      <div style={{
+        backgroundColor: currentSyllabus.bgLight,
+        border: '4px solid #1e293b',
+        borderRadius: '28px',
+        padding: '32px',
+        boxShadow: '0 10px 0 #1e293b',
+        transition: 'all 0.2s ease',
+        boxSizing: 'border-box'
+      }}>
+        
+        {/* 卡片頂部標題 */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'start',
+          gap: '16px',
+          borderBottom: '3px dashed rgba(30, 41, 59, 0.15)',
+          paddingBottom: '20px',
+          marginBottom: '28px',
+          flexWrap: 'wrap'
+        }}>
+          <div style={{
+            backgroundColor: currentSyllabus.color,
+            color: '#ffffff',
+            padding: '8px 16px',
+            borderRadius: '12px',
+            fontSize: '16px',
+            fontWeight: '950',
+            border: '2.5px solid #1e293b',
+            boxShadow: '2px 2px 0 #1e293b',
+            flexShrink: 0
+          }}>
+            {currentSyllabus.badge}
           </div>
-        )}
+          <div>
+            <h3 style={{ fontSize: '24px', fontWeight: '950', color: '#1e293b', margin: '0 0 4px 0' }}>
+              {currentSyllabus.title}
+            </h3>
+            <p style={{ fontSize: '14px', fontWeight: '700', color: '#475569', margin: 0 }}>
+              🎯 {currentSyllabus.subtitle}
+            </p>
+          </div>
+        </div>
+
+        {/* 課程章節條目列表 - 恢復正常的左對齊易讀格局 */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {currentSyllabus.topics.map((topic, index) => {
+            const isTask = topic.head.includes("任務");
+            return (
+              <div 
+                key={index}
+                style={{
+                  backgroundColor: '#ffffff',
+                  border: '2.5px solid #1e293b',
+                  borderRadius: '18px',
+                  padding: '20px',
+                  boxShadow: '4px 4px 0 #1e293b',
+                  display: 'flex',
+                  gap: '16px',
+                  alignItems: 'start',
+                  boxSizing: 'border-box'
+                }}
+              >
+                {/* 左側標籤圖示 */}
+                <div style={{
+                  fontSize: '22px',
+                  backgroundColor: isTask ? '#fee2e2' : '#f1f5f9',
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '2px solid #1e293b',
+                  flexShrink: 0
+                }}>
+                  {isTask ? '🚀' : '📝'}
+                </div>
+                
+                {/* 右側文字內容 */}
+                <div style={{ textAlign: 'left' }}>
+                  <h4 style={{ 
+                    fontSize: '16px', 
+                    fontWeight: '900', 
+                    color: isTask ? '#dc2626' : '#1e293b', 
+                    margin: '0 0 4px 0' 
+                  }}>
+                    {topic.head}
+                  </h4>
+                  <p style={{ 
+                    fontSize: '14px', 
+                    fontWeight: '600', 
+                    color: '#475569', 
+                    margin: 0,
+                    lineHeight: '1.6'
+                  }}>
+                    {topic.desc}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
       </div>
     </div>
   );

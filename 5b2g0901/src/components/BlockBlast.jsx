@@ -1,56 +1,297 @@
 import React from 'react';
 
-export default function BlockBlast({ gameScore, initBlockGame, gameBlocks, selectedBlock, shakeBlockId, handleBlockClick }) {
+export default function BlockBlast({
+  gameScore,
+  initBlockGame,
+  gameBlocks,
+  selectedBlock,
+  shakeBlockId,
+  handleBlockClick
+}) {
+  // Tách mảng dữ liệu thành 2 cột rõ ràng chống tràn/lộn xộn chữ
+  const wordColumns = gameBlocks.filter((b) => b.type === 'word');
+  const meanColumns = gameBlocks.filter((b) => b.type === 'mean');
+  const isAllCleared = gameBlocks.length > 0 && gameBlocks.every((b) => b.cleared);
+
   return (
-    <div className="max-w-2xl mx-auto bg-[#E0F2FE] border-4 border-[#7DD3FC] p-6 rounded-3xl shadow-[0_8px_0_0_#7DD3FC] animate-fade-in">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-black text-[#0369A1] tracking-wider">🧩 單字連連看 GAME</h3>
-        <div className="flex items-center gap-4">
-          <span className="text-xs font-black text-[#0369A1] bg-[#BAE6FD] px-3 py-1.5 rounded-full border border-[#7DD3FC]">
-            ⭐ SCORE: {gameScore}
-          </span>
-          <button onClick={initBlockGame} className="px-3 py-1.5 bg-[#0EA5E9] hover:bg-[#38BDF8] border-b-4 border-[#0284C7] active:translate-y-0.5 active:border-b-0 text-white font-black text-xs rounded-xl transition-all">
+    <div className="w-full max-w-4xl mx-auto qz-wrapper" style={{ padding: '10px 0' }}>
+      
+      {/* KHU VỰC THÔNG TIN TRÊN (BẢNG ĐIỂM + NÚT RESET) */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'between',
+        alignItems: 'center',
+        backgroundColor: '#406293',
+        padding: '16px 24px',
+        borderRadius: '20px',
+        border: '3px solid #1e293b',
+        boxShadow: '0 6px 0 #1e293b',
+        marginBottom: '28px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '16px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '28px' }}>🧩</span>
+          <h2 style={{ fontSize: '20px', fontWeight: '950', color: '#ffffff', margin: 0, letterSpacing: '1px' }}>
+            單字翻翻樂連連看
+          </h2>
+        </div>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{
+            backgroundColor: '#fef3c7',
+            color: '#b45309',
+            padding: '10px 20px',
+            borderRadius: '14px',
+            fontWeight: '900',
+            fontSize: '15px',
+            border: '2.5px solid #1e293b',
+            boxShadow: '0 4px 0 #1e293b',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}>
+            ⭐ SCORE: <span style={{ fontSize: '20px', color: '#d97706' }}>{gameScore}</span>
+          </div>
+          <button
+            onClick={initBlockGame}
+            style={{
+              backgroundColor: '#ffffff',
+              color: '#1e293b',
+              padding: '10px 20px',
+              borderRadius: '14px',
+              fontWeight: '900',
+              fontSize: '14px',
+              border: '2.5px solid #1e293b',
+              boxShadow: '0 4px 0 #1e293b',
+              cursor: 'pointer',
+              transition: 'all 0.1s ease',
+            }}
+            onMouseDown={(e) => e.currentTarget.style.transform = 'translateY(3px)'}
+            onMouseUp={(e) => e.currentTarget.style.transform = 'none'}
+          >
             🔄 重置配對
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        {gameBlocks.map((block) => {
-          if (block.cleared) {
-            return (
-              <div key={block.id} className="h-20 rounded-2xl bg-[#F0FDF4] border-2 border-dashed border-[#BBF7D0] flex items-center justify-center text-2xl animate-pulse">
-                ✅
+      {/* KHU VỰC CHƠI CHÍNH */}
+      <div style={{
+        backgroundColor: '#ffffff',
+        border: '4px solid #1e293b',
+        borderRadius: '32px',
+        padding: '32px',
+        boxShadow: '0 12px 0px #1e293b',
+        minHeight: '400px',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        boxSizing: 'border-box'
+      }}>
+        
+        {isAllCleared ? (
+          /* MÀN HÌNH CHIẾN THẮNG */
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            <span style={{ fontSize: '64px', display: 'block', marginBottom: '16px' }}>🎉</span>
+            <h3 style={{ fontSize: '32px', fontWeight: '950', color: '#0f172a', margin: '0 0 8px 0' }}>太厲害了！</h3>
+            <p style={{ color: '#64748b', fontWeight: '700', fontSize: '15px', margin: '0 0 24px 0' }}>您已成功配對所有單字！</p>
+            <div style={{
+              display: 'inline-block',
+              backgroundColor: '#dcfce7',
+              color: '#166534',
+              border: '3px dashed #22c55e',
+              padding: '12px 32px',
+              borderRadius: '20px',
+              fontWeight: '900',
+              fontSize: '22px',
+              marginBottom: '28px'
+            }}>
+              最終得分: {gameScore} 分
+            </div>
+            <div>
+              <button
+                onClick={initBlockGame}
+                style={{
+                  backgroundColor: '#10b981',
+                  color: '#ffffff',
+                  padding: '16px 36px',
+                  borderRadius: '20px',
+                  fontWeight: '950',
+                  fontSize: '18px',
+                  border: '3px solid #1e293b',
+                  boxShadow: '0 6px 0 #1e293b',
+                  cursor: 'pointer',
+                  transition: 'all 0.1s'
+                }}
+                onMouseDown={(e) => e.currentTarget.style.transform = 'translateY(4px)'}
+                onMouseUp={(e) => e.currentTarget.style.transform = 'none'}
+              >
+                再玩一次 🚀
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* GIAO DIỆN CHƠI CHIA 2 CỘT */
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: window.innerWidth < 768 ? '1fr' : '1fr 1fr',
+            gap: '32px'
+          }}>
+            
+            {/* CỘT TIẾNG ANH (LEFT) */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{
+                textAlign: 'center',
+                fontWeight: '900',
+                fontSize: '13px',
+                letterSpacing: '1.5px',
+                color: '#0369a1',
+                backgroundColor: '#e0f2fe',
+                border: '2.5px solid #0284c7',
+                padding: '8px 0',
+                borderRadius: '14px',
+                textTransform: 'uppercase'
+              }}>
+                🔤 English Word
               </div>
-            );
-          }
+              
+              {wordColumns.map((block) => {
+                const isSelected = selectedBlock?.id === block.id;
+                const isShaking = shakeBlockId === block.id;
 
-          const isSelected = selectedBlock?.id === block.id;
-          const isShaking = shakeBlockId === block.id;
+                return (
+                  <button
+                    key={block.id}
+                    disabled={block.cleared}
+                    onClick={() => handleBlockClick(block)}
+                    style={{
+                      width: '100%',
+                      padding: '18px 24px',
+                      borderRadius: '20px',
+                      textAlign: 'left',
+                      fontWeight: '900',
+                      fontSize: '17px',
+                      border: '3px solid',
+                      borderColor: isShaking ? '#ef4444' : isSelected ? '#1e293b' : '#e2e8f0',
+                      backgroundColor: block.cleared ? '#f1f5f9' : isShaking ? '#fef2f2' : isSelected ? '#0ea5e9' : '#ffffff',
+                      color: block.cleared ? '#cbd5e1' : isShaking ? '#ef4444' : isSelected ? '#ffffff' : '#1e293b',
+                      boxShadow: block.cleared || isSelected ? 'none' : '0 6px 0 #f1f5f9',
+                      transform: isSelected ? 'translateY(3px)' : 'none',
+                      cursor: block.cleared ? 'default' : 'pointer',
+                      transition: 'all 0.15s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      opacity: block.cleared ? 0.35 : 1,
+                      textDecoration: block.cleared ? 'line-through' : 'none',
+                      animation: isShaking ? 'shake 0.4s ease-in-out' : 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    <span>{block.text}</span>
+                    {!block.cleared && (
+                      <span style={{
+                        fontSize: '10px',
+                        fontWeight: '900',
+                        padding: '3px 8px',
+                        borderRadius: '8px',
+                        backgroundColor: isSelected ? 'rgba(255,255,255,0.25)' : '#f8fafc',
+                        color: isSelected ? '#ffffff' : '#94a3b8',
+                        border: isSelected ? '1px solid rgba(255,255,255,0.4)' : '1px solid #e2e8f0'
+                      }}>
+                        {isSelected ? 'SELECTED' : 'WORD'}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
 
-          // Phối màu sắc sặc sỡ dựa theo loại khối (Từ tiếng Anh màu Hồng / Nghĩa tiếng Trung màu Vàng)
-          let colorClass = block.type === 'word' 
-            ? 'bg-[#FCE7F3] border-[#F9A8D4] text-[#9D174D] shadow-[0_4px_0_0_#F9A8D4]' 
-            : 'bg-[#FEF3C7] border-[#FCD34D] text-[#78350F] shadow-[0_4px_0_0_#FCD34D]';
+            {/* CỘT TIẾNG TRUNG (RIGHT) */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{
+                textAlign: 'center',
+                fontWeight: '900',
+                fontSize: '13px',
+                letterSpacing: '1.5px',
+                color: '#4338ca',
+                backgroundColor: '#e0e7ff',
+                border: '2.5px solid #4f46e5',
+                padding: '8px 0',
+                borderRadius: '14px',
+                textTransform: 'uppercase'
+              }}>
+                🇨🇳 中文釋義
+              </div>
+              
+              {meanColumns.map((block) => {
+                const isSelected = selectedBlock?.id === block.id;
+                const isShaking = shakeBlockId === block.id;
 
-          if (isSelected) {
-            colorClass = 'bg-[#38BDF8] border-[#0284C7] text-white scale-95 shadow-inner';
-          }
-          if (isShaking) {
-            colorClass = 'bg-[#FCA5A5] border-[#EF4444] text-[#7F1D1D] animate-shake';
-          }
+                return (
+                  <button
+                    key={block.id}
+                    disabled={block.cleared}
+                    onClick={() => handleBlockClick(block)}
+                    style={{
+                      width: '100%',
+                      padding: '18px 24px',
+                      borderRadius: '20px',
+                      textAlign: 'left',
+                      fontWeight: '800',
+                      fontSize: '15px',
+                      border: '3px solid',
+                      borderColor: isShaking ? '#ef4444' : isSelected ? '#1e293b' : '#e2e8f0',
+                      backgroundColor: block.cleared ? '#f1f5f9' : isShaking ? '#fef2f2' : isSelected ? '#6366f1' : '#ffffff',
+                      color: block.cleared ? '#cbd5e1' : isShaking ? '#ef4444' : isSelected ? '#ffffff' : '#334155',
+                      boxShadow: block.cleared || isSelected ? 'none' : '0 6px 0 #f1f5f9',
+                      transform: isSelected ? 'translateY(3px)' : 'none',
+                      cursor: block.cleared ? 'default' : 'pointer',
+                      transition: 'all 0.15s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      opacity: block.cleared ? 0.35 : 1,
+                      textDecoration: block.cleared ? 'line-through' : 'none',
+                      animation: isShaking ? 'shake 0.4s ease-in-out' : 'none',
+                      lineHeight: '1.4',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    <span style={{ paddingRight: '8px' }}>{block.text}</span>
+                    {!block.cleared && (
+                      <span style={{
+                        fontSize: '10px',
+                        fontWeight: '900',
+                        padding: '3px 8px',
+                        borderRadius: '8px',
+                        backgroundColor: isSelected ? 'rgba(255,255,255,0.25)' : '#f8fafc',
+                        color: isSelected ? '#ffffff' : '#94a3b8',
+                        border: isSelected ? '1px solid rgba(255,255,255,0.4)' : '1px solid #e2e8f0',
+                        flexShrink: 0
+                      }}>
+                        {isSelected ? 'SELECTED' : 'MEANING'}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
 
-          return (
-            <button
-              key={block.id}
-              onClick={() => handleBlockClick(block)}
-              className={`h-20 p-2 rounded-2xl border-2 font-black text-xs flex items-center justify-center text-center transition-all duration-150 break-words active:translate-y-1 active:shadow-none ${colorClass}`}
-            >
-              {block.text}
-            </button>
-          );
-        })}
+          </div>
+        )}
       </div>
+
+      {/* EFFECT SHAKE ANIMATION */}
+      <style>{`
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          20%, 60% { transform: translateX(-6px); }
+          40%, 80% { transform: translateX(6px); }
+        }
+      `}</style>
     </div>
   );
 }
