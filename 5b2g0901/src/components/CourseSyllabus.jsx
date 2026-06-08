@@ -9,7 +9,7 @@ export default function CourseSyllabus() {
       title: "穩固基礎與核心概念",
       subtitle: "JavaScript ES6+ 必備心法 & React 核心起步",
       badge: "Week 01",
-      color: "#0ea5e9",
+      color: "#f59e0b",
       bgLight: "#f0f9ff",
       topics: [
         {
@@ -34,8 +34,8 @@ export default function CourseSyllabus() {
       title: "狀態管理與事件處理",
       subtitle: "讓你的 UI 動起來！學會 React 的靈魂 Hook",
       badge: "Week 02",
-      color: "#bee755",
-      bgLight: "#f0fdf4",
+      color: "#f59e0b",
+      bgLight: "#fffbeb",
       topics: [
         {
           head: "useState Hook 核心基礎",
@@ -55,8 +55,8 @@ export default function CourseSyllabus() {
       title: "副作用處理與 API 整合",
       subtitle: "與外部世界串聯，打造會呼吸的真實應用",
       badge: "Week 03",
-      color: "#fbb2fd",
-      bgLight: "#eef2ff",
+      color: "#f59e0b",
+      bgLight: "#fffbeb",
       topics: [
         {
           head: "useEffect 生命週期管理",
@@ -97,8 +97,8 @@ export default function CourseSyllabus() {
       title: "專案總結與雲端部署",
       subtitle: "完美收尾！將你的心血結晶分享給全網絡",
       badge: "Week 05",
-      color: "#a1f0a9",
-      bgLight: "#fdf2f8",
+      color: "#f59e0b",
+      bgLight: "#fffbeb",
       topics: [
         {
           head: "React 專案打包構建",
