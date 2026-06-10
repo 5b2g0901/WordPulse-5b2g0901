@@ -235,17 +235,69 @@ function App() {
       "Explore": { structures: ["Explore local markets"], grammar: "動詞" },
       "Intersection": { structures: ["At the traffic intersection"], grammar: "名詞" },
       "Memorable": { structures: ["A memorable journey"], grammar: "形容詞" },
-      "Privacy": { structures: ["Respect someone's privacy"], grammar: "名詞" }
+      "Privacy": { structures: ["Respect someone's privacy"], grammar: "名詞" },
+      "Parents": { structures: ["Live with one's parents"], grammar: "名詞" },
+      "Grandparents": { structures: ["Visit grandparents during holidays"], grammar: "名詞" },
+      "Grandson": { structures: ["Be someone's oldest grandson"], grammar: "名詞" },
+      "Granddaughter": { structures: ["Buy something for their granddaughter"], grammar: "名詞" },
+      "Spouses": { structures: ["Employees and their spouses"], grammar: "名詞 (複數)" },
+      "Relatives": { structures: ["Gather together with relatives"], grammar: "名詞 (複數)" },
+      "Uncle": { structures: ["My uncle works as an engineer"], grammar: "名詞" },
+      "Aunt": { structures: ["My aunt baked a delicious cake"], grammar: "名詞" },
+      "Cousin": { structures: ["Be close friends with one's cousin"], grammar: "名詞" },
+      "Only child": { structures: ["Grow up as an only child"], grammar: "名詞短語" },
+      "Son-in-law": { structures: ["Go out with one's son-in-law"], grammar: "名詞" },
+      "Daughter-in-law": { structures: ["Welcome a new daughter-in-law"], grammar: "名詞" },
+      "Niece": { structures: ["Buy a lovely dress for one's niece"], grammar: "名詞" },
+      "Nephew": { structures: ["Start university as a young nephew"], grammar: "名詞" },
+      "Infant": { structures: ["Rock the crying infant to sleep"], grammar: "名詞" },
+      "Twin": { structures: ["They are twin brothers"], grammar: "名詞 / 形容詞" },
+      "Triplet": { structures: ["Caring for triplets is challenging"], grammar: "名詞" },
+      "Single family": { structures: ["Be raised in a single family"], grammar: "名詞短語" },
+      "Multi-generation family": { structures: ["Live in a multi-generation family"], grammar: "名詞短語" },
+      "Generation": { structures: ["A significant generation gap"], grammar: "名詞" },
+      "Be born": { structures: ["Was/Were born in [year/place]"], grammar: "動詞短語" },
+      "Give birth": { structures: ["Give birth to a healthy baby"], grammar: "動詞短語" },
+      "Get married": { structures: ["Plan to get married next year"], grammar: "動詞短語" },
+      "Divorce": { structures: ["Decide to divorce amicably"], grammar: "動詞 / 名詞" },
+      "Pass away": { structures: ["Pass away peacefully at an old age"], grammar: "動詞短語" },
+      "Visit relatives": { structures: ["Travel back hometown to visit relatives"], grammar: "動詞短語" },
+      "Keep in touch": { structures: ["Keep in touch with someone through social media"], grammar: "動詞短語" },
+      "Relationship": { structures: ["Maintain a good relationship with"], grammar: "名詞" },
+      "Relatively": { structures: ["Be relatively easy compared to"], grammar: "副詞" },
+      "Relatable": { structures: ["The main character is highly relatable to"], grammar: "形容詞" },
+      "Brush teeth": { structures: ["Brush one's teeth twice a day"], grammar: "動詞短語" },
+      "Wash face": { structures: ["Wash one's face with cold water"], grammar: "動詞短語" },
+      "Take a shower": { structures: ["Take a hot shower after working out"], grammar: "動詞短語" },
+      "Take a bath": { structures: ["Love to take a long bath to relax"], grammar: "動詞短語" },
+      "Ear-piercing": { structures: ["Go to a salon to get an ear-piercing"], grammar: "名詞 / 動詞短語" },
+      "Take care of": { structures: ["Take care of someone/pet carefully"], grammar: "動詞短語" },
+      "Clear trash": { structures: ["Clear trash from a messy place"], grammar: "動詞短語" },
+      "Clean up": { structures: ["Clean up the messy kitchen immediately"], grammar: "動詞短語" },
+      "Wash dishes": { structures: ["It's my turn to wash the dishes"], grammar: "動詞短語" },
+      "Sweep": { structures: ["Sweep the floor/porch with a broom"], grammar: "動詞" },
+      "Mop the floor": { structures: ["Use a wet cloth to mop the floor"], grammar: "動詞短語" },
+      "Vacuum": { structures: ["Vacuum the living room carpet"], grammar: "動詞 / 名詞" },
+      "Water flowers": { structures: ["Water the flowers in the backyard garden"], grammar: "動詞短語" },
+      "Washing machine": { structures: ["Put dirty clothes into the washing machine"], grammar: "名詞短語" },
+      "Altar": { structures: ["Place fresh fruits and incense on the altar"], grammar: "名詞" },
+      "Stroll": { structures: ["Stroll along the peaceful lake after dinner"], grammar: "動詞 / 名詞" },
+      "Outing": { structures: ["Organize an exciting weekend outing to"], grammar: "名詞" },
+      "Roller-skating rink": { structures: ["Meet childhood friends at the roller-skating rink"], grammar: "名詞短語" },
+      "Relaxation": { structures: ["Provide total relaxation after work"], grammar: "名詞" },
+      "Relaxed": { structures: ["Feel completely relaxed and refreshed"], grammar: "形容詞" }
+      
     };
     
     // 🔥 Kiểm tra xem từ hiện hành có thuộc nhóm từ mới được người dùng tự nhập hay không
-    const customWord = vocabularyData.find(v => v.word === word);
-    if (customWord) {
-      return { 
-        structures: [customWord.structure || "常用句型"], // Ưu tiên hiển thị mẫu câu đã nhập thủ công
-        grammar: customWord.grammar || "詞性分析" 
+    const getSentenceAnalysis = (word) => {
+      const customWord = vocabularyData.find(v => v.word === word);
+    
+      return {
+        grammar: customWord?.grammar || "詞性分析",
+        structures: [customWord?.structure || "常用句型"]
       };
-    }
+    };
 
     return analysisMap[word] || { structures: ["常用句型"], grammar: "詞性分析" };
   };
@@ -540,82 +592,84 @@ function App() {
       >
         
         {/* 1. 🚀 深度探索 */}
-        {currentMode === 'dive' && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-            <div style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '24px',
-              padding: '40px 32px',
-              width: '100%',
-              maxWidth: '680px',
-              boxShadow: '0 12px 32px rgba(0, 0, 0, 0.15)',
-              borderBottom: '8px solid #cbd5e1',
-              textAlign: 'center',
-              boxSizing: 'border-box'
-            }}>
-              <div style={{ marginBottom: '16px' }}>
-                <span style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#0284c7', marginBottom: '6px' }}>
-                  CURRENT WORD
-                </span>
-                <h2 style={{ fontSize: '42px', fontWeight: '900', color: '#0f172a', margin: 0 }}>
-                  {vocabularyData[diveIdx]?.word}
-                </h2>
-              </div>
-              <div style={{ marginBottom: '24px' }}>
-                <button 
-                  onClick={() => handleSpeak(vocabularyData[diveIdx]?.word)} 
-                  style={{
-                    width: '54px',
-                    height: '54px',
-                    backgroundColor: '#e0f2fe',
-                    border: '2px solid #38bdf8',
-                    borderRadius: '50%',
-                    fontSize: '20px',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 4px 0 #38bdf8'
-                  }}
-                >
-                  🔊
-                </button>
-              </div>
-              <hr style={{ border: 'none', borderTop: '2px dashed #e2e8f0', margin: '24px 0' }} />
-              <div style={{ marginBottom: '24px' }}>
-                <span style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#64748b', marginBottom: '6px' }}>
-                  中文釋義
-                </span>
-                <p style={{ fontSize: '24px', fontWeight: '800', color: '#0369a1', margin: 0 }}>
-                  {vocabularyData[diveIdx]?.meaningZh}
-                </p>
-              </div>
-              <div style={{ marginBottom: '28px', padding: '16px', backgroundColor: '#f8fafc', borderRadius: '16px', borderLeft: '4px solid #0ea5e9' }}>
-                <span style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#64748b', marginBottom: '6px', textAlign: 'left' }}>
-                  情境例句
-                </span>
-                <p style={{ fontSize: '16px', fontWeight: '600', fontStyle: 'italic', color: '#334155', margin: 0, textAlign: 'left', lineHeight: '1.5' }}>
-                  "{vocabularyData[diveIdx]?.example}"
-                </p>
-              </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '12px' }}>
-                <span style={{ backgroundColor: '#f1f5f9', color: '#475569', padding: '8px 14px', borderRadius: '12px', fontSize: '13px', fontWeight: '700' }}>
-                  🏷️ 詞性: {getSentenceAnalysis(vocabularyData[diveIdx]?.word).grammar}
-                </span>
-                <span style={{ backgroundColor: '#f0fdf4', color: '#166534', padding: '8px 14px', borderRadius: '12px', fontSize: '13px', fontWeight: '700' }}>
-                  💡 推薦句型: {getSentenceAnalysis(vocabularyData[diveIdx]?.word).structures[0]}
-                </span>
-              </div>
-            </div>
+{currentMode === 'dive' && (
+  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+    <div style={{
+      backgroundColor: '#ffffff',
+      borderRadius: '24px',
+      padding: '40px 32px',
+      width: '100%',
+      maxWidth: '680px',
+      boxShadow: '0 12px 32px rgba(0, 0, 0, 0.15)',
+      borderBottom: '8px solid #cbd5e1',
+      textAlign: 'center',
+      boxSizing: 'border-box'
+    }}>
+      <div style={{ marginBottom: '16px' }}>
+        <span style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#0284c7', marginBottom: '6px' }}>
+          CURRENT WORD
+        </span>
+        <h2 style={{ fontSize: '42px', fontWeight: '900', color: '#0f172a', margin: 0 }}>
+          {vocabularyData[diveIdx]?.word}
+        </h2>
+      </div>
+      <div style={{ marginBottom: '24px' }}>
+        <button 
+          onClick={() => handleSpeak(vocabularyData[diveIdx]?.word)} 
+          style={{
+            width: '54px',
+            height: '54px',
+            backgroundColor: '#e0f2fe',
+            border: '2px solid #38bdf8',
+            borderRadius: '50%',
+            fontSize: '20px',
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 0 #38bdf8'
+          }}
+        >
+          🔊
+        </button>
+      </div>
+      <hr style={{ border: 'none', borderTop: '2px dashed #e2e8f0', margin: '24px 0' }} />
+      <div style={{ marginBottom: '24px' }}>
+        <span style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#64748b', marginBottom: '6px' }}>
+          中文釋義
+        </span>
+        <p style={{ fontSize: '24px', fontWeight: '800', color: '#0369a1', margin: 0 }}>
+          {vocabularyData[diveIdx]?.meaningZh}
+        </p>
+      </div>
+      <div style={{ marginBottom: '28px', padding: '16px', backgroundColor: '#f8fafc', borderRadius: '16px', borderLeft: '4px solid #0ea5e9' }}>
+        <span style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#64748b', marginBottom: '6px', textAlign: 'left' }}>
+          情境例句
+        </span>
+        <p style={{ fontSize: '16px', fontWeight: '600', fontStyle: 'italic', color: '#334155', margin: 0, textAlign: 'left', lineHeight: '1.5' }}>
+          "{vocabularyData[diveIdx]?.example}"
+        </p>
+      </div>
+      
+      {/* 🔥 Vị trí đã sửa: Thay justifyQontent thành justifyContent để căn giữa 2 ô */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '12px' }}>
+        <span style={{ backgroundColor: '#f1f5f9', color: '#475569', padding: '8px 14px', borderRadius: '12px', fontSize: '13px', fontWeight: '700' }}>
+          🏷️ 詞性: {getSentenceAnalysis(vocabularyData[diveIdx]?.word).grammar}
+        </span>
+        <span style={{ backgroundColor: '#f0fdf4', color: '#166534', padding: '8px 14px', borderRadius: '12px', fontSize: '13px', fontWeight: '700' }}>
+          💡 推薦句型: {getSentenceAnalysis(vocabularyData[diveIdx]?.word).structures[0]}
+        </span>
+      </div>
+    </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', margin: '24px 0' }}>
-              <button onClick={() => setDiveIdx(p => Math.max(0, p - 1))} disabled={diveIdx === 0} style={{ padding: '10px 20px', backgroundColor: '#ffffff', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' }}>◀ 上一個</button>
-              <span style={{ fontSize: '16px', fontWeight: '900', color: '#ffffff' }}>{diveIdx + 1} / {vocabularyData.length}</span>
-              <button onClick={() => setDiveIdx(p => Math.min(vocabularyData.length - 1, p + 1))} disabled={diveIdx === vocabularyData.length - 1} style={{ padding: '10px 20px', backgroundColor: '#ffffff', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' }}>下一個 ▶</button>
-            </div>
-          </div>
-        )}
-
+    {/* 🔥 Vị trí đã sửa: Thay justifyQontent thành justifyContent cho thanh bấm chuyển trang */}
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', margin: '24px 0' }}>
+      <button onClick={() => setDiveIdx(p => Math.max(0, p - 1))} disabled={diveIdx === 0} style={{ padding: '10px 20px', backgroundColor: '#ffffff', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' }}>◀ 上一個</button>
+      <span style={{ fontSize: '16px', fontWeight: '900', color: '#ffffff' }}>{diveIdx + 1} / {vocabularyData.length}</span>
+      <button onClick={() => setDiveIdx(p => Math.min(vocabularyData.length - 1, p + 1))} disabled={diveIdx === vocabularyData.length - 1} style={{ padding: '10px 20px', backgroundColor: '#ffffff', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' }}>下一個 ▶</button>
+    </div>
+  </div>
+)}
         {/* 2. 📇 單字卡 */}
         {currentMode === 'card' && <Flashcard vocabularyData={vocabularyData} />}
 
