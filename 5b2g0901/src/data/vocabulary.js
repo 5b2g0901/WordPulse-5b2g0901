@@ -1,7 +1,5 @@
 export const vocabularyData = [
-  // ==========================================
-  // OLD DATA ENHANCED (Vietnamese descriptions removed)
-  // ==========================================
+
   {
     id: 1,
     category: "General",
