@@ -415,6 +415,7 @@ function App() {
             alignItems: 'stretch',
             width: '100%',
             flex: 1,
+            overflow: 'hidden',
             overflowX: 'auto', 
             boxSizing: 'border-box'
           }}
@@ -450,6 +451,7 @@ function App() {
                   backgroundColor: isActive ? '#FFFFFF' : 'transparent',
                   color: isActive ? '#133087' : '#FFFFFF', 
                   border: 'none',
+                  borderBottomLeftRadius: index === 0 ? '20px' : '0px ',
                   borderRight: index === arr.length - 1 ? 'none' : '3px solid #1e293b',
                   boxSizing: 'border-box'
                 }}
