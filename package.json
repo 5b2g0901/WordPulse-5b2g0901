@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "dev": "npm run dev --prefix 5b2g0901",
+    "build": "npm run build --prefix 5b2g0901",
+    "lint": "npm run lint --prefix 5b2g0901",
+    "preview": "npm run preview --prefix 5b2g0901"
   },
   "dependencies": {
     "react": "^18.3.1",

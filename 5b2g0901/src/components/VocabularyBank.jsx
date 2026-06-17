@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function VocabularyBank({ vocabularyData = [] }) {
+export default function VocabularyBank({ vocabularyData = [], savedWordIds = [], onToggleSave }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all'); // all, short, long
 
@@ -14,9 +14,9 @@ export default function VocabularyBank({ vocabularyData = [] }) {
     const word = getWordText(item).toLowerCase();
     const meaning = getMeaningText(item).toLowerCase();
     const search = searchTerm.toLowerCase();
-    
+
     const matchesSearch = word.includes(search) || meaning.includes(search);
-    
+
     if (filterType === 'short') {
       return matchesSearch && getWordText(item).length <= 6; // Từ ngắn
     }
@@ -112,6 +112,7 @@ export default function VocabularyBank({ vocabularyData = [] }) {
           align-items: flex-start;
           gap: 12px;
           margin-bottom: 8px;
+          padding-right: 32px; /* Chừa không gian tránh đè lên nút ngôi sao */
         }
         .vb-word-text {
           font-size: 22px;
@@ -139,6 +140,23 @@ export default function VocabularyBank({ vocabularyData = [] }) {
           background: #0066cc !important;
           color: #fff !important;
           transform: scale(1.1);
+        }
+
+        /* Nút Lưu Ngôi Sao Trong Card */
+        .vb-save-btn {
+          position: absolute;
+          top: 18px;
+          right: 18px;
+          background: none;
+          border: none;
+          font-size: 20px;
+          cursor: pointer;
+          transition: transform 0.2s;
+          z-index: 10;
+          padding: 0;
+        }
+        .vb-save-btn:hover {
+          transform: scale(1.2);
         }
 
         .vb-meaning-text {
@@ -188,13 +206,13 @@ export default function VocabularyBank({ vocabularyData = [] }) {
         <span className="vb-badge">共收錄 {vocabularyData.length} 個單字</span>
       </div>
 
-      {/* 🛠️ GIẢI PHÁP MỚI: Dùng Grid thuần inline đè bẹp hoàn toàn CSS ẩn giấu bên ngoài */}
+      {/* 🛠️ Bộ lọc và thanh tìm kiếm */}
       <div style={{
         background: 'rgba(255, 255, 255, 0.95)',
         padding: '16px 20px',
         borderRadius: '16px',
         display: 'grid',
-        gridTemplateColumns: '7fr 3fr', 
+        gridTemplateColumns: '7fr 3fr',
         alignItems: 'center',
         gap: '20px',
         marginBottom: '28px',
@@ -202,7 +220,7 @@ export default function VocabularyBank({ vocabularyData = [] }) {
         width: '100%',
         boxSizing: 'border-box'
       }}>
-        
+
         {/* Khung chứa ô tìm kiếm */}
         <div style={{ position: 'relative', width: '100%' }}>
           <span style={{
@@ -214,9 +232,9 @@ export default function VocabularyBank({ vocabularyData = [] }) {
             color: '#94a3b8',
             zIndex: 5
           }}>🔍</span>
-          <input 
-            type="text" 
-            placeholder="搜尋英文單字..." 
+          <input
+            type="text"
+            placeholder="搜尋英文單字..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{
@@ -232,8 +250,8 @@ export default function VocabularyBank({ vocabularyData = [] }) {
             }}
           />
         </div>
-        
-        {/* Khung chứa 3 nút bộ lọc: Ép buộc hiển thị inline-flex xếp hàng ngang */}
+
+        {/* Khung chứa 3 nút bộ lọc */}
         <div style={{
           display: 'flex',
           gap: '10px',
@@ -241,7 +259,7 @@ export default function VocabularyBank({ vocabularyData = [] }) {
           alignItems: 'center',
           width: '100%'
         }}>
-          <button 
+          <button
             onClick={() => setFilterType('all')}
             style={{
               background: filterType === 'all' ? '#0066cc' : '#f1f5f9',
@@ -254,13 +272,13 @@ export default function VocabularyBank({ vocabularyData = [] }) {
               cursor: 'pointer',
               whiteSpace: 'nowrap',
               boxShadow: filterType === 'all' ? '0 4px 12px rgba(0, 102, 204, 0.25)' : 'none',
-              display: 'inline-block' /* Ép hiển thị rõ ràng */
+              display: 'inline-block'
             }}
           >
             全部
           </button>
-          
-          <button 
+
+          <button
             onClick={() => setFilterType('short')}
             style={{
               background: filterType === 'short' ? '#0066cc' : '#f1f5f9',
@@ -278,8 +296,8 @@ export default function VocabularyBank({ vocabularyData = [] }) {
           >
             短字 (≤6碼)
           </button>
-          
-          <button 
+
+          <button
             onClick={() => setFilterType('long')}
             style={{
               background: filterType === 'long' ? '#0066cc' : '#f1f5f9',
@@ -309,8 +327,18 @@ export default function VocabularyBank({ vocabularyData = [] }) {
         ) : (
           filteredData.map((item, index) => {
             const word = getWordText(item);
+            const isSaved = savedWordIds.includes(item.id);
             return (
-              <div key={index} className="vb-card">
+              <div key={item.id || index} className="vb-card">
+                {/* ⭐ NÚT BẤM NGÔI SAO LƯU TRÊN MỖI Ô TỪ VỰNG */}
+                <button
+                  className="vb-save-btn"
+                  onClick={() => onToggleSave && onToggleSave(item.id)}
+                  title={isSaved ? "取消收藏" : "加入收藏"}
+                >
+                  {isSaved ? '⭐' : '☆'}
+                </button>
+
                 <div>
                   <div className="vb-word-row">
                     <h3 className="vb-word-text">{word}</h3>
@@ -320,7 +348,7 @@ export default function VocabularyBank({ vocabularyData = [] }) {
                   </div>
                   <p className="vb-meaning-text">{getMeaningText(item)}</p>
                 </div>
-                
+
                 {getSentenceText(item) && (
                   <div>
                     <div className="vb-divider"></div>

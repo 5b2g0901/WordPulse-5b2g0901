@@ -1,4 +1,6 @@
 import React from 'react';
+// Ép bundler lấy ảnh trực tiếp từ tài nguyên assets
+import myAvatar from '../assets/avatar.jpg';
 
 export default function UserProfile() {
   return (
@@ -17,7 +19,6 @@ export default function UserProfile() {
         fontFamily: "'Microsoft JhengHei', '微軟正黑體', sans-serif"
       }}
     >
-      {}
       <style>{`
         .user-profile-left-block,
         .user-profile-left-block h2,
@@ -33,7 +34,7 @@ export default function UserProfile() {
         }
       `}</style>
 
-      {/* KHỐI TRÁI (LEFT): Thông tin cá nhân (Đã sửa & Giữ lại 1 khối duy nhất) */}
+      {/* KHỐI TRÁI (LEFT): Thông tin cá nhân */}
       <div
         className="user-profile-left-block"
         style={{
@@ -55,11 +56,12 @@ export default function UserProfile() {
             background: "#050505",
             margin: "0 auto 24px",
             padding: "3px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            overflow: "hidden"
           }}
         >
           <img
-            src="/avatar.jpg"
+            src={myAvatar}
             alt="Avatar"
             style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
           />
@@ -79,7 +81,7 @@ export default function UserProfile() {
         </div>
       </div>
 
-      {/* KHỐI PHẢI (RIGHT): Nội dung thuyết minh (Đã khôi phục lại phần bị thiếu) */}
+      {/* KHỐI PHẢI (RIGHT): Nội dung thuyết minh */}
       <div
         className="user-profile-right-block"
         style={{
@@ -125,7 +127,7 @@ export default function UserProfile() {
 
         {/* Khung chứa các mục đích chia làm 2 ô gọn gàng */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-          
+
           {/* Ô mục đích 1 */}
           <div style={{ background: "#F8FAFC", padding: "16px", borderRadius: "12px", border: "1px solid #E2E8F0" }}>
             <h4 style={{ margin: "0 0 6px 0", fontSize: "15px", fontWeight: "700", color: "#3F5F94" }}>

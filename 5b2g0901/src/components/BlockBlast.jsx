@@ -15,7 +15,7 @@ export default function BlockBlast({
 
   return (
     <div className="w-full max-w-4xl mx-auto qz-wrapper" style={{ padding: '10px 0' }}>
-      
+
       {/* KHU VỰC THÔNG TIN TRÊN (BẢNG ĐIỂM + NÚT RESET) */}
       <div style={{
         display: 'flex',
@@ -38,7 +38,7 @@ export default function BlockBlast({
             單字翻翻樂連連看
           </h2>
         </div>
-        
+
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <div style={{
             backgroundColor: '#fef3c7',
@@ -90,7 +90,7 @@ export default function BlockBlast({
         justifyContent: 'center',
         boxSizing: 'border-box'
       }}>
-        
+
         {isAllCleared ? (
           /* MÀN HÌNH CHIẾN THẮNG */
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
@@ -139,7 +139,7 @@ export default function BlockBlast({
             gridTemplateColumns: window.innerWidth < 768 ? '1fr' : '1fr 1fr',
             gap: '32px'
           }}>
-            
+
             {/* CỘT TIẾNG ANH (LEFT) */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{
@@ -156,7 +156,7 @@ export default function BlockBlast({
               }}>
                 🔤 English Word
               </div>
-              
+
               {wordColumns.map((block) => {
                 const isSelected = selectedBlock?.id === block.id;
                 const isShaking = shakeBlockId === block.id;
@@ -225,7 +225,7 @@ export default function BlockBlast({
               }}>
                 🇨🇳 中文釋義
               </div>
-              
+
               {meanColumns.map((block) => {
                 const isSelected = selectedBlock?.id === block.id;
                 const isShaking = shakeBlockId === block.id;
