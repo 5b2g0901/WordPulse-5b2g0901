@@ -8,6 +8,7 @@ import UserProfile from './components/UserProfile';
 import CourseSyllabus from './components/CourseSyllabus';
 import Flashcard from './components/Flashcard'; 
 import VocabularyBank from './components/VocabularyBank';
+import SavedWords from './components/SavedWords';
 
 function App() {
   const [currentMode, setCurrentMode] = useState('syllabus'); 
@@ -16,11 +17,65 @@ function App() {
 
   // --- STATE QUẢN LÝ TỪ VỰNG DÀNH CHO THANH NHẬP MỚI ---
   const [vocabularyData, setVocabularyData] = useState(initialVocabularyData);
+  
+  // VỊ TRÍ 1: KHỞI TẠO STATE NGÔI SAO TỪ LOCALSTORAGE
+  const [savedWordIds, setSavedWordIds] = useState(() => {
+    try {
+      const saved = localStorage.getItem('savedWordIds');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) { return []; }
+  });
+
+  // TỰ ĐỘNG LƯU DỮ LIỆU KHI THAY ĐỔI
+  useEffect(() => {
+    try {
+      localStorage.setItem('savedWordIds', JSON.stringify(savedWordIds));
+    } catch (e) { console.error(e); }
+  }, [savedWordIds]);
+
+  // HÀM XỬ LÝ CLICK ĐỔI TRẠNG THÁI NGÔI SAO
+  const toggleSaveWord = (wordId) => {
+    setSavedWordIds(prev => {
+      const uniquePrev = Array.from(new Set(prev));
+      if (uniquePrev.includes(wordId)) {
+        return uniquePrev.filter(id => id !== wordId);
+      } else {
+        return [...uniquePrev, wordId];
+      }
+    });
+  };
+
+  // --- HÀM XỬ LÝ XÓA TỪ VỰNG (CHỈ CHO NHỮNG TỪ DO NGƯỜI DÙNG THÊM) ---
+  const handleDeleteWord = (wordId) => {
+    // Kiểm tra xem từ có phải do người dùng thêm không (ID là số hoặc string từ initialData)
+    const isInitialWord = initialVocabularyData.some(w => w.id === wordId);
+    
+    if (isInitialWord) {
+      alert('❌ Không thể xóa từ vựng gốc!');
+      return;
+    }
+
+    // Xác nhận trước khi xóa
+    const confirmed = window.confirm('您確定要刪除這個單字嗎？');
+    if (!confirmed) return;
+
+    // Xóa từ khỏi vocabularyData
+    setVocabularyData(prev => prev.filter(item => item.id !== wordId));
+
+    // Nếu từ đó đã được lưu, xóa khỏi savedWordIds
+    setSavedWordIds(prev => prev.filter(id => id !== wordId));
+
+    // Nếu từ đó là từ hiện tại trong Deep Dive, chuyển sang từ tiếp theo
+    if (vocabularyData[diveIdx]?.id === wordId) {
+      setDiveIdx(prev => Math.max(0, prev - 1));
+    }
+  };
+
   const [newWord, setNewWord] = useState('');
   const [newMeaning, setNewMeaning] = useState('');
   const [newExample, setNewExample] = useState('');
   const [newGrammar, setNewGrammar] = useState(''); 
-  const [newStructure, setNewStructure] = useState(''); // 🔥 Thêm State mới cho Mẫu câu gợi ý
+  const [newStructure, setNewStructure] = useState(''); 
 
   // --- STATE ĐIỀU KHIỂN ĐÓNG/MỞ THANH THÊM TỪ NHO NHỎ ---
   const [isFormExpanded, setIsFormExpanded] = useState(false);
@@ -66,14 +121,14 @@ function App() {
       meaningZh: newMeaning.trim(),
       example: newExample.trim() || 'No example context provided.',
       grammar: newGrammar.trim() || '名詞', 
-      structure: newStructure.trim() || '常用句型' // 🔥 Lưu mẫu câu người dùng tự nhập vào dữ liệu từ vựng
+      structure: newStructure.trim() || '常用句型' 
     };
     setVocabularyData(prev => [newVocabItem, ...prev]);
     setNewWord('');
     setNewMeaning('');
     setNewExample('');
     setNewGrammar('');
-    setNewStructure(''); // 🔥 Reset ô nhập mẫu câu gợi ý
+    setNewStructure(''); 
     setIsFormExpanded(false); 
   };
 
@@ -92,6 +147,7 @@ function App() {
   const initNewStage = (stageNumber) => {
     const shuffled = [...vocabularyData].sort(() => 0.5 - Math.random());
     const sliceTen = shuffled.slice(0, 10);
+    const shuffledOptions = [...vocabularyData];
     setStageQuestions(sliceTen);
     setQuizStage(stageNumber);
     setQuizIdx(0);
@@ -225,6 +281,14 @@ function App() {
   };
 
   const getSentenceAnalysis = (word) => {
+    const customWord = vocabularyData.find(v => v.word === word);
+    if (customWord && !["Sibling", "Nuclear family", "Personal hygiene", "Ingredient", "Affordable", "Convenient", "Explore", "Intersection", "Memorable", "Privacy", "Parents", "Grandparents", "Grandson", "Granddaughter", "Spouses", "Relatives", "Uncle", "Aunt", "Cousin", "Only child", "Son-in-law", "Daughter-in-law", "Niece", "Nephew", "Infant", "Twin", "Triplet", "Single family", "Multi-generation family", "Generation", "Be born", "Give birth", "Get married", "Divorce", "Pass away", "Visit relatives", "Keep in touch", "Relationship", "Relatively", "Relatable", "Brush teeth", "Wash face", "Take a shower", "Take a bath", "Ear-piercing", "Take care of", "Clear trash", "Clean up", "Wash dishes", "Sweep", "Mop the floor", "Vacuum", "Water flowers", "Washing machine", "Altar", "Stroll", "Outing", "Roller-skating rink", "Relaxation", "Relaxed"].includes(word)) {
+      return {
+        grammar: customWord.grammar || "詞性分析",
+        structures: [customWord.structure || "常用句型"]
+      };
+    }
+
     const analysisMap = {
       "Sibling": { structures: ["I have [quantity] siblings"], grammar: "名詞" },
       "Nuclear family": { structures: ["Live in a nuclear family"], grammar: "名詞短語" },
@@ -286,19 +350,8 @@ function App() {
       "Roller-skating rink": { structures: ["Meet childhood friends at the roller-skating rink"], grammar: "名詞短語" },
       "Relaxation": { structures: ["Provide total relaxation after work"], grammar: "名詞" },
       "Relaxed": { structures: ["Feel completely relaxed and refreshed"], grammar: "形容詞" }
-      
     };
     
-    // 🔥 Kiểm tra xem từ hiện hành có thuộc nhóm từ mới được người dùng tự nhập hay không
-    const getSentenceAnalysis = (word) => {
-      const customWord = vocabularyData.find(v => v.word === word);
-    
-      return {
-        grammar: customWord?.grammar || "詞性分析",
-        structures: [customWord?.structure || "常用句型"]
-      };
-    };
-
     return analysisMap[word] || { structures: ["常用句型"], grammar: "詞性分析" };
   };
 
@@ -377,7 +430,6 @@ function App() {
           backgroundColor: '#0284C7', 
           borderRadius: '24px',
           border: '4px solid #1e293b', 
-          shadow: '0 8px #1e293b',
           color: '#FFFFFF',
           overflow: 'hidden'
         }}
@@ -424,6 +476,7 @@ function App() {
             { id: 'dive', label: '🚀 深度探索' },
             { id: 'card', label: '📇 單字卡' },
             { id: 'gallery', label: '🖼️ 單字庫' },
+            { id: 'saved', label: '⭐ 收藏單字' },
             { id: 'typing', label: '⌨️ 拼字輸入' },
             { id: 'listening', label: '🎧 聽力訓練' },
             { id: 'quiz', label: '🧠 核心測驗' },
@@ -463,7 +516,7 @@ function App() {
         </nav>
       </header>
 
-      {/* 🌟 THANH THÊM TỪ THU GỌN / MỞ RỘNG THÔNG MINH 🌟 */}
+      {/* THANH THÊM TỪ THU GỌN / MỞ RỘNG THÔNG MINH */}
       <div 
         className="max-w-5xl mx-auto mb-6"
         style={{
@@ -475,7 +528,6 @@ function App() {
           transition: 'all 0.3s ease'
         }}
       >
-        {/* Trạng thái 1: Chỉ hiện duy nhất một thanh nhỏ nhỏ ban đầu */}
         {!isFormExpanded ? (
           <div 
             onClick={() => setIsFormExpanded(true)}
@@ -497,7 +549,6 @@ function App() {
             </div>
           </div>
         ) : (
-          /* Trạng thái 2: Sau khi bấm vào sẽ xổ ra đầy đủ form điền dữ liệu */
           <div style={{ padding: '20px' }}>
             <div 
               onClick={() => setIsFormExpanded(false)}
@@ -513,7 +564,6 @@ function App() {
             </div>
 
             <form onSubmit={handleAddNewWord} className="flex flex-col gap-4 w-full">
-              {/* Hàng 1: Từ vựng & Nghĩa tiếng Trung & Từ loại */}
               <div className="flex flex-col md:flex-row gap-3 w-full">
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: '900', marginBottom: '5px', color: '#1E293B' }}>英文單字 (English Word)*</label>
@@ -541,7 +591,6 @@ function App() {
                 </div>
               </div>
 
-              {/* Hàng 2: Câu ví dụ ngữ cảnh & 🔥 Mẫu câu gợi ý */}
               <div className="flex flex-col md:flex-row gap-3 w-full">
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: '900', marginBottom: '5px', color: '#1E293B' }}>情境例句 (Context Example)</label>
@@ -561,7 +610,6 @@ function App() {
                 </div>
               </div>
 
-              {/* Nút hành động */}
               <div className="flex justify-end gap-3 mt-1">
                 <button 
                   type="submit"
@@ -594,91 +642,165 @@ function App() {
       >
         
         {/* 1. 🚀 深度探索 */}
-{currentMode === 'dive' && (
-  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-    <div style={{
-      backgroundColor: '#ffffff',
-      borderRadius: '24px',
-      padding: '40px 32px',
-      width: '100%',
-      maxWidth: '680px',
-      boxShadow: '0 12px 32px rgba(0, 0, 0, 0.15)',
-      borderBottom: '8px solid #cbd5e1',
-      textAlign: 'center',
-      boxSizing: 'border-box'
-    }}>
-      <div style={{ marginBottom: '16px' }}>
-        <span style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#0284c7', marginBottom: '6px' }}>
-          CURRENT WORD
-        </span>
-        <h2 style={{ fontSize: '42px', fontWeight: '900', color: '#0f172a', margin: 0 }}>
-          {vocabularyData[diveIdx]?.word}
-        </h2>
-      </div>
-      <div style={{ marginBottom: '24px' }}>
-        <button 
-          onClick={() => handleSpeak(vocabularyData[diveIdx]?.word)} 
-          style={{
-            width: '54px',
-            height: '54px',
-            backgroundColor: '#e0f2fe',
-            border: '2px solid #38bdf8',
-            borderRadius: '50%',
-            fontSize: '20px',
-            cursor: 'pointer',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 0 #38bdf8'
-          }}
-        >
-          🔊
-        </button>
-      </div>
-      <hr style={{ border: 'none', borderTop: '2px dashed #e2e8f0', margin: '24px 0' }} />
-      <div style={{ marginBottom: '24px' }}>
-        <span style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#64748b', marginBottom: '6px' }}>
-          中文釋義
-        </span>
-        <p style={{ fontSize: '24px', fontWeight: '800', color: '#0369a1', margin: 0 }}>
-          {vocabularyData[diveIdx]?.meaningZh}
-        </p>
-      </div>
-      <div style={{ marginBottom: '28px', padding: '16px', backgroundColor: '#f8fafc', borderRadius: '16px', borderLeft: '4px solid #0ea5e9' }}>
-        <span style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#64748b', marginBottom: '6px', textAlign: 'left' }}>
-          情境例句
-        </span>
-        <p style={{ fontSize: '16px', fontWeight: '600', fontStyle: 'italic', color: '#334155', margin: 0, textAlign: 'left', lineHeight: '1.5' }}>
-          "{vocabularyData[diveIdx]?.example}"
-        </p>
-      </div>
-      
-      {/* 🔥 Vị trí đã sửa: Thay justifyQontent thành justifyContent để căn giữa 2 ô */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '12px' }}>
-        <span style={{ backgroundColor: '#f1f5f9', color: '#475569', padding: '8px 14px', borderRadius: '12px', fontSize: '13px', fontWeight: '700' }}>
-          🏷️ 詞性: {getSentenceAnalysis(vocabularyData[diveIdx]?.word).grammar}
-        </span>
-        <span style={{ backgroundColor: '#f0fdf4', color: '#166534', padding: '8px 14px', borderRadius: '12px', fontSize: '13px', fontWeight: '700' }}>
-          💡 推薦句型: {getSentenceAnalysis(vocabularyData[diveIdx]?.word).structures[0]}
-        </span>
-      </div>
-    </div>
+        {currentMode === 'dive' && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+            <div style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '24px',
+              padding: '40px 32px',
+              width: '100%',
+              maxWidth: '680px',
+              boxShadow: '0 12px 32px rgba(0, 0, 0, 0.15)',
+              borderBottom: '8px solid #cbd5e1',
+              textAlign: 'center',
+              boxSizing: 'border-box',
+              position: 'relative' // Bổ sung relative để cố định ngôi sao góc phải card
+            }}>
+              
+              {/* 右上角按钮容器（星星和垃圾桶） */}
+              <div style={{
+                position: 'absolute',
+                top: '20px',
+                right: '25px',
+                display: 'flex',
+                gap: '10px',
+                alignItems: 'center'
+              }}>
+                {/* ⭐ 收藏按钮 */}
+                <button
+                  onClick={() => toggleSaveWord(vocabularyData[diveIdx]?.id)}
+                  style={{
+                    backgroundColor: savedWordIds.includes(vocabularyData[diveIdx]?.id) ? '#FEF08A' : '#F1F5F9',
+                    border: '2px solid #1E293B',
+                    borderRadius: '10px',
+                    padding: '6px 12px',
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    fontWeight: '800',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    boxSizing: 'border-box',
+                    boxShadow: '0 2px 0 #1E293B'
+                  }}
+                >
+                  {savedWordIds.includes(vocabularyData[diveIdx]?.id) ? '⭐ 已儲存' : '☆ 儲存單字'}
+                </button>
 
-    {/* 🔥 Vị trí đã sửa: Thay justifyQontent thành justifyContent cho thanh bấm chuyển trang */}
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', margin: '24px 0' }}>
-      <button onClick={() => setDiveIdx(p => Math.max(0, p - 1))} disabled={diveIdx === 0} style={{ padding: '10px 20px', backgroundColor: '#ffffff', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' }}>◀ 上一個</button>
-      <span style={{ fontSize: '16px', fontWeight: '900', color: '#ffffff' }}>{diveIdx + 1} / {vocabularyData.length}</span>
-      <button onClick={() => setDiveIdx(p => Math.min(vocabularyData.length - 1, p + 1))} disabled={diveIdx === vocabularyData.length - 1} style={{ padding: '10px 20px', backgroundColor: '#ffffff', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' }}>下一個 ▶</button>
-    </div>
-  </div>
-)}
+                {/* 🗑️ 删除按钮（仅对用户新增的单字显示） */}
+                {vocabularyData[diveIdx]?.id && typeof vocabularyData[diveIdx]?.id === 'string' && 
+                 !initialVocabularyData.some(w => w.id === vocabularyData[diveIdx]?.id) && (
+                  <button
+                    onClick={() => handleDeleteWord(vocabularyData[diveIdx]?.id)}
+                    style={{
+                      backgroundColor: '#FFE4E6',
+                      border: '2px solid #DC2626',
+                      borderRadius: '10px',
+                      padding: '6px 10px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '800',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxSizing: 'border-box',
+                      boxShadow: '0 2px 0 #DC2626',
+                      transition: 'all 0.2s'
+                    }}
+                    title="刪除此單字"
+                  >
+                    🗑️
+                  </button>
+                )}
+              </div>
+
+              <div style={{ marginBottom: '16px', marginTop: '10px' }}>
+                <span style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#0284c7', marginBottom: '6px' }}>
+                  CURRENT WORD
+                </span>
+                <h2 style={{ fontSize: '42px', fontWeight: '900', color: '#0f172a', margin: 0 }}>
+                  {vocabularyData[diveIdx]?.word}
+                </h2>
+              </div>
+              <div style={{ marginBottom: '24px' }}>
+                <button 
+                  onClick={() => handleSpeak(vocabularyData[diveIdx]?.word)} 
+                  style={{
+                    width: '54px',
+                    height: '54px',
+                    backgroundColor: '#e0f2fe',
+                    border: '2px solid #38bdf8',
+                    borderRadius: '50%',
+                    fontSize: '20px',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 4px 0 #38bdf8'
+                  }}
+                >
+                  🔊
+                </button>
+              </div>
+              <hr style={{ border: 'none', borderTop: '2px dashed #e2e8f0', margin: '24px 0' }} />
+              <div style={{ marginBottom: '24px' }}>
+                <span style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#64748b', marginBottom: '6px' }}>
+                  中文釋義
+                </span>
+                <p style={{ fontSize: '24px', fontWeight: '800', color: '#0369a1', margin: 0 }}>
+                  {vocabularyData[diveIdx]?.meaningZh}
+                </p>
+              </div>
+              <div style={{ marginBottom: '28px', padding: '16px', backgroundColor: '#f8fafc', borderRadius: '16px', borderLeft: '4px solid #0ea5e9' }}>
+                <span style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#64748b', marginBottom: '6px', textAlign: 'left' }}>
+                  情境例句
+                </span>
+                <p style={{ fontSize: '16px', fontWeight: '600', fontStyle: 'italic', color: '#334155', margin: 0, textAlign: 'left', lineHeight: '1.5' }}>
+                  "{vocabularyData[diveIdx]?.example}"
+                </p>
+              </div>
+              
+              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '12px' }}>
+                <span style={{ backgroundColor: '#f1f5f9', color: '#475569', padding: '8px 14px', borderRadius: '12px', fontSize: '13px', fontWeight: '700' }}>
+                  🏷️ 詞性: {getSentenceAnalysis(vocabularyData[diveIdx]?.word).grammar}
+                </span>
+                <span style={{ backgroundColor: '#f0fdf4', color: '#166534', padding: '8px 14px', borderRadius: '12px', fontSize: '13px', fontWeight: '700' }}>
+                  💡 推薦句型: {getSentenceAnalysis(vocabularyData[diveIdx]?.word).structures[0]}
+                </span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', margin: '24px 0' }}>
+              <button onClick={() => setDiveIdx(p => Math.max(0, p - 1))} disabled={diveIdx === 0} style={{ padding: '10px 20px', backgroundColor: '#ffffff', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' }}>◀ 上一個</button>
+              <span style={{ fontSize: '16px', fontWeight: '900', color: '#ffffff' }}>{diveIdx + 1} / {vocabularyData.length}</span>
+              <button onClick={() => setDiveIdx(p => Math.min(vocabularyData.length - 1, p + 1))} disabled={diveIdx === vocabularyData.length - 1} style={{ padding: '10px 20px', backgroundColor: '#ffffff', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' }}>下一個 ▶</button>
+            </div>
+          </div>
+        )}
         {/* 2. 📇 單字卡 */}
         {currentMode === 'card' && <Flashcard vocabularyData={vocabularyData} />}
 
         {/* 3. 🖼️ 單字庫 */}
-        {currentMode === 'gallery' && <VocabularyBank vocabularyData={vocabularyData} />}
+        {currentMode === 'gallery' && (
+          <VocabularyBank 
+            vocabularyData={vocabularyData}
+            savedWordIds={savedWordIds}
+            toggleSaveWord={toggleSaveWord}
+            handleDeleteWord={handleDeleteWord}
+            initialVocabularyData={initialVocabularyData}
+          />
+        )}
 
-        {/* 4. ⌨️ 拼字輸入 */}
+        {/* 4. ⭐ 收藏單字 */}
+        {currentMode === 'saved' && (
+          <SavedWords 
+            vocabularyData={vocabularyData}
+            savedWordIds={savedWordIds}
+            toggleSaveWord={toggleSaveWord}
+          />
+        )}
+
+        {/* 5. ⌨️ 拼字輸入 */}
         {currentMode === 'typing' && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
             <div style={{ 
@@ -761,7 +883,7 @@ function App() {
           </div>
         )}
 
-        {/* 5. 🎧 聽力訓練 */}
+        {/* 6. 🎧 聽力訓練 */}
         {currentMode === 'listening' && (
           <ListeningQuiz 
             vocabularyData={vocabularyData}
@@ -771,7 +893,7 @@ function App() {
           />
         )}
 
-        {/* 6. 🧠 CORE QUIZ */}
+        {/* 7. 🧠 CORE QUIZ */}
         {currentMode === 'quiz' && stageQuestions.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', padding: '12px 0' }}>
             {!isQuizFinished ? (
@@ -851,7 +973,7 @@ function App() {
           </div>
         )}
 
-        {/* 7. 🧩 連連看 */}
+        {/* 8. 🧩 連連看 */}
         {currentMode === 'game' && (
           <BlockBlast 
             gameBlocks={gameBlocks}
@@ -863,10 +985,10 @@ function App() {
           />
         )}
 
-        {/* 8. 👤 個人簡介 */}
+        {/* 9. 👤 個人簡介 */}
         {currentMode === 'profile' && <UserProfile />}
 
-        {/* 9. 📚 本學期課程 */}
+        {/* 10. 📚 本學期課程 */}
         {currentMode === 'syllabus' && <CourseSyllabus />}
 
       </main>

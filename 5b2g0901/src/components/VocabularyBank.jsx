@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 
-export default function VocabularyBank({ vocabularyData = [] }) {
+export default function VocabularyBank({ 
+  vocabularyData = [], 
+  savedWordIds = [],
+  toggleSaveWord = () => {},
+  handleDeleteWord = () => {},
+  initialVocabularyData = []
+}) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all'); // all, short, long
 
@@ -8,6 +14,13 @@ export default function VocabularyBank({ vocabularyData = [] }) {
   const getWordText = (item) => item?.word || item?.vocabulary || item?.english || "";
   const getMeaningText = (item) => item?.meaningZh || item?.meaning || item?.chinese || "暫無中文資料";
   const getSentenceText = (item) => item?.example || item?.sentence || "";
+
+  // 检查是否是用户新增的单字
+  const isUserAddedWord = (item) => {
+    if (!item?.id) return false;
+    // 用户新增的单字 ID 是字符串类型，且不在初始数据中
+    return typeof item.id === 'string' && !initialVocabularyData.some(w => w.id === item.id);
+  };
 
   // 2. Bộ lọc tìm kiếm thông minh (Tìm theo cả tiếng Anh lẫn tiếng Trung)
   const filteredData = vocabularyData.filter(item => {
@@ -309,14 +322,70 @@ export default function VocabularyBank({ vocabularyData = [] }) {
         ) : (
           filteredData.map((item, index) => {
             const word = getWordText(item);
+            const isSaved = savedWordIds.includes(item.id);
+            const isUserAdded = isUserAddedWord(item);
+            
             return (
               <div key={index} className="vb-card">
                 <div>
                   <div className="vb-word-row">
                     <h3 className="vb-word-text">{word}</h3>
-                    <button className="vb-speaker-btn" onClick={() => handleSpeak(word)} title="播放發音">
-                      🔊
-                    </button>
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                      {/* 🔊 播放按钮 */}
+                      <button className="vb-speaker-btn" onClick={() => handleSpeak(word)} title="播放發音">
+                        🔊
+                      </button>
+                      
+                      {/* ⭐ 收藏按钮 */}
+                      <button
+                        onClick={() => toggleSaveWord(item.id)}
+                        style={{
+                          background: isSaved ? '#FEF3C7' : '#F1F5F9',
+                          border: isSaved ? '2px solid #F59E0B' : '2px solid #CBD5E1',
+                          color: isSaved ? '#F59E0B' : '#94A3B8',
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          fontSize: '16px',
+                          fontWeight: '800',
+                          transition: 'all 0.2s',
+                          flexShrink: 0
+                        }}
+                        title={isSaved ? "已收藏" : "收藏此單字"}
+                      >
+                        {isSaved ? '⭐' : '☆'}
+                      </button>
+                      
+                      {/* 🗑️ 删除按钮（仅对用户新增的单字显示） */}
+                      {isUserAdded && (
+                        <button
+                          onClick={() => handleDeleteWord(item.id)}
+                          style={{
+                            background: '#FFE4E6',
+                            border: '2px solid #DC2626',
+                            color: '#DC2626',
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            fontSize: '16px',
+                            fontWeight: '800',
+                            transition: 'all 0.2s',
+                            flexShrink: 0
+                          }}
+                          title="刪除此單字"
+                        >
+                          🗑️
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <p className="vb-meaning-text">{getMeaningText(item)}</p>
                 </div>
