@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
-export default function VocabularyBank({ vocabularyData = [], savedWordIds = [], onToggleSave }) {
+// Nhận thêm prop onDeleteWord từ App.jsx xuống để xử lý xóa
+export default function VocabularyBank({ vocabularyData = [], savedWordIds = [], onToggleSave, onDeleteWord }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all'); // all, short, long
 
@@ -43,18 +44,35 @@ export default function VocabularyBank({ vocabularyData = [], savedWordIds = [],
         .vb-container {
           max-width: 1200px;
           margin: 20px auto;
-          padding: 24px;
+          padding: 16px;
           font-family: 'PingFang TC', 'Microsoft JhengHei', system-ui, sans-serif;
+          box-sizing: border-box;
+        }
+
+        @media (min-width: 768px) {
+          .vb-container {
+            padding: 24px;
+          }
         }
 
         /* Tựa đề và Thống kê nhanh */
         .vb-header-zone {
           display: flex;
+          flex-direction: column;
+          gap: 10px;
           justify-content: space-between;
-          align-items: center;
+          align-items: flex-start;
           margin-bottom: 24px;
           color: #fff;
         }
+        
+        @media (min-width: 576px) {
+          .vb-header-zone {
+            flex-direction: row;
+            align-items: center;
+          }
+        }
+
         .vb-title {
           font-size: 24px;
           font-weight: 800;
@@ -65,24 +83,110 @@ export default function VocabularyBank({ vocabularyData = [], savedWordIds = [],
         }
         .vb-badge {
           background: rgba(255, 255, 255, 0.2);
-          padding: 4px 12px;
+          padding: 6px 14px;
           border-radius: 20px;
           font-size: 14px;
           font-weight: 600;
         }
 
-        /* Lưới hiển thị danh sách dạng Card chống tràn màn hình */
+        /* Khu vực tìm kiếm và bộ lọc cải tiến Responsive */
+        .vb-filter-wrapper {
+          background: rgba(255, 255, 255, 0.95);
+          padding: 16px;
+          border-radius: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          margin-bottom: 28px;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+          width: 100%;
+          box-sizing: border-box;
+        }
+
+        @media (min-width: 992px) {
+          .vb-filter-wrapper {
+            display: grid;
+            grid-template-columns: 6fr 4fr;
+            align-items: center;
+            padding: 16px 20px;
+          }
+        }
+
+        .vb-search-box {
+          position: relative;
+          width: 100%;
+        }
+        .vb-search-icon {
+          position: absolute;
+          left: 14px;
+          top: 50%;
+          transform: translateY(-50%);
+          font-size: 16px;
+          color: #94a3b8;
+          z-index: 5;
+        }
+        .vb-input {
+          width: 100%;
+          padding: 12px 16px 12px 40px;
+          border: 1px solid #cbd5e1;
+          border-radius: 12px;
+          font-size: 15px;
+          outline: none;
+          color: #1e293b;
+          box-sizing: border-box;
+          display: block;
+          transition: border-color 0.2s;
+        }
+        .vb-input:focus {
+          border-color: #0066cc;
+          box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+        }
+
+        .vb-btn-group {
+          display: flex;
+          gap: 8px;
+          width: 100%;
+          overflow-x: auto;
+          scrollbar-width: none;
+          padding-bottom: 2px;
+        }
+        .vb-btn-group::-webkit-scrollbar {
+          display: none;
+          }
+
+        .vb-filter-btn {
+          flex: 1;
+          min-width: fit-content;
+          border: none;
+          padding: 11px 16px;
+          border-radius: 10px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: all 0.2s;
+          text-align: center;
+        }
+
+        /* Lưới hiển thị danh sách dạng Card */
         .vb-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-          gap: 20px;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: 16px;
+        }
+        
+        @media (min-width: 576px) {
+          .vb-grid {
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+          }
         }
         
         /* Chi tiết thiết kế Card từ vựng */
         .vb-card {
           background: #ffffff !important;
           border-radius: 18px;
-          padding: 22px;
+          padding: 20px;
           box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08) !important;
           border: 1px solid rgba(241, 245, 249, 0.8) !important;
           display: flex;
@@ -109,32 +213,63 @@ export default function VocabularyBank({ vocabularyData = [], savedWordIds = [],
         .vb-word-row {
           display: flex;
           justify-content: space-between;
-          align-items: flex-start;
+          align-items: center;
           gap: 12px;
-          margin-bottom: 8px;
-          padding-right: 32px; /* Chừa không gian tránh đè lên nút ngôi sao */
+          margin-bottom: 12px;
         }
         .vb-word-text {
-          font-size: 22px;
+          font-size: 20px;
           font-weight: 800;
           color: #0f172a !important;
           letter-spacing: -0.3px;
           margin: 0;
+          word-break: break-word;
         }
-        .vb-speaker-btn {
-          background: #f0f7ff !important;
-          border: none;
-          color: #0066cc !important;
-          width: 36px;
-          height: 36px;
+        @media (min-width: 576px) {
+          .vb-word-text {
+            font-size: 22px;
+          }
+        }
+        
+        /* CỤM BA NÚT HÀNH ĐỘNG HÀNG NGANG (Nghe - Sao - Thùng rác) */
+        .vb-action-cluster {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex-shrink: 0;
+        }
+        @media (min-width: 576px) {
+          .vb-action-cluster {
+            gap: 8px;
+          }
+        }
+
+        /* Định dạng chung cho các nút tròn hành động */
+        .vb-action-btn {
+          width: 34px;
+          height: 34px;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
-          font-size: 16px;
+          font-size: 15px;
           transition: all 0.2s;
-          flex-shrink: 0;
+          border: none;
+          padding: 0;
+        }
+        @media (min-width: 576px) {
+          .vb-action-btn {
+            width: 36px;
+            height: 36px;
+            font-size: 16px;
+          }
+        }
+
+        /* 🔊 Nút Phát Âm */
+        .vb-speaker-btn {
+          background: #f0f7ff !important;
+          color: #0066cc !important;
         }
         .vb-speaker-btn:hover {
           background: #0066cc !important;
@@ -142,25 +277,30 @@ export default function VocabularyBank({ vocabularyData = [], savedWordIds = [],
           transform: scale(1.1);
         }
 
-        /* Nút Lưu Ngôi Sao Trong Card */
+        /* ⭐ Nút Lưu trữ ngôi sao */
         .vb-save-btn {
-          position: absolute;
-          top: 18px;
-          right: 18px;
-          background: none;
-          border: none;
-          font-size: 20px;
-          cursor: pointer;
-          transition: transform 0.2s;
-          z-index: 10;
-          padding: 0;
+          background: #fef8e7 !important;
+          color: #eab308 !important;
         }
         .vb-save-btn:hover {
-          transform: scale(1.2);
+          background: #eab308 !important;
+          color: #fff !important;
+          transform: scale(1.1);
+        }
+
+        /* 🗑️ Nút Xóa từ vựng tự thêm */
+        .vb-delete-btn {
+          background: #fef2f2 !important;
+          color: #ef4444 !important;
+        }
+        .vb-delete-btn:hover {
+          background: #ef4444 !important;
+          color: #fff !important;
+          transform: scale(1.1);
         }
 
         .vb-meaning-text {
-          font-size: 15px;
+          font-size: 14px;
           font-weight: 600;
           color: #0284c7 !important;
           margin: 0 0 14px 0;
@@ -170,6 +310,11 @@ export default function VocabularyBank({ vocabularyData = [], savedWordIds = [],
           display: inline-block;
           width: fit-content;
         }
+        @media (min-width: 576px) {
+          .vb-meaning-text {
+            font-size: 15px;
+          }
+        }
 
         .vb-divider {
           height: 1px;
@@ -178,7 +323,7 @@ export default function VocabularyBank({ vocabularyData = [], savedWordIds = [],
         }
 
         .vb-sentence-box {
-          font-size: 14px;
+          font-size: 13px;
           color: #475569 !important;
           line-height: 1.5;
           font-style: italic;
@@ -186,6 +331,11 @@ export default function VocabularyBank({ vocabularyData = [], savedWordIds = [],
           position: relative;
           padding-left: 12px;
           border-left: 2px solid #cbd5e1 !important;
+        }
+        @media (min-width: 576px) {
+          .vb-sentence-box {
+            font-size: 14px;
+          }
         }
 
         .vb-empty {
@@ -206,73 +356,29 @@ export default function VocabularyBank({ vocabularyData = [], savedWordIds = [],
         <span className="vb-badge">共收錄 {vocabularyData.length} 個單字</span>
       </div>
 
-      {/* 🛠️ Bộ lọc và thanh tìm kiếm */}
-      <div style={{
-        background: 'rgba(255, 255, 255, 0.95)',
-        padding: '16px 20px',
-        borderRadius: '16px',
-        display: 'grid',
-        gridTemplateColumns: '7fr 3fr',
-        alignItems: 'center',
-        gap: '20px',
-        marginBottom: '28px',
-        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
-        width: '100%',
-        boxSizing: 'border-box'
-      }}>
-
+      {/* 🛠️ Bộ lọc và thanh tìm kiếm dạng Responsive */}
+      <div className="vb-filter-wrapper">
         {/* Khung chứa ô tìm kiếm */}
-        <div style={{ position: 'relative', width: '100%' }}>
-          <span style={{
-            position: 'absolute',
-            left: '14px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            fontSize: '16px',
-            color: '#94a3b8',
-            zIndex: 5
-          }}>🔍</span>
+        <div className="vb-search-box">
+          <span className="vb-search-icon">🔍</span>
           <input
             type="text"
             placeholder="搜尋英文單字..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '12px 16px 12px 40px',
-              border: '1px solid #cbd5e1',
-              borderRadius: '12px',
-              fontSize: '15px',
-              outline: 'none',
-              color: '#1e293b',
-              boxSizing: 'border-box',
-              display: 'block'
-            }}
+            className="vb-input"
           />
         </div>
 
         {/* Khung chứa 3 nút bộ lọc */}
-        <div style={{
-          display: 'flex',
-          gap: '10px',
-          justifyContent: 'flex-start',
-          alignItems: 'center',
-          width: '100%'
-        }}>
+        <div className="vb-btn-group">
           <button
             onClick={() => setFilterType('all')}
+            className="vb-filter-btn"
             style={{
               background: filterType === 'all' ? '#0066cc' : '#f1f5f9',
               color: filterType === 'all' ? '#ffffff' : '#475569',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '10px',
-              fontSize: '14px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
               boxShadow: filterType === 'all' ? '0 4px 12px rgba(0, 102, 204, 0.25)' : 'none',
-              display: 'inline-block'
             }}
           >
             全部
@@ -280,18 +386,11 @@ export default function VocabularyBank({ vocabularyData = [], savedWordIds = [],
 
           <button
             onClick={() => setFilterType('short')}
+            className="vb-filter-btn"
             style={{
               background: filterType === 'short' ? '#0066cc' : '#f1f5f9',
               color: filterType === 'short' ? '#ffffff' : '#475569',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '10px',
-              fontSize: '14px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
               boxShadow: filterType === 'short' ? '0 4px 12px rgba(0, 102, 204, 0.25)' : 'none',
-              display: 'inline-block'
             }}
           >
             短字 (≤6碼)
@@ -299,18 +398,11 @@ export default function VocabularyBank({ vocabularyData = [], savedWordIds = [],
 
           <button
             onClick={() => setFilterType('long')}
+            className="vb-filter-btn"
             style={{
               background: filterType === 'long' ? '#0066cc' : '#f1f5f9',
               color: filterType === 'long' ? '#ffffff' : '#475569',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '10px',
-              fontSize: '14px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
               boxShadow: filterType === 'long' ? '0 4px 12px rgba(0, 102, 204, 0.25)' : 'none',
-              display: 'inline-block'
             }}
           >
             長字 (&gt;6碼)
@@ -330,22 +422,44 @@ export default function VocabularyBank({ vocabularyData = [], savedWordIds = [],
             const isSaved = savedWordIds.includes(item.id);
             return (
               <div key={item.id || index} className="vb-card">
-                {/* ⭐ NÚT BẤM NGÔI SAO LƯU TRÊN MỖI Ô TỪ VỰNG */}
-                <button
-                  className="vb-save-btn"
-                  onClick={() => onToggleSave && onToggleSave(item.id)}
-                  title={isSaved ? "取消收藏" : "加入收藏"}
-                >
-                  {isSaved ? '⭐' : '☆'}
-                </button>
-
                 <div>
                   <div className="vb-word-row">
+                    {/* Tên từ vựng bên trái */}
                     <h3 className="vb-word-text">{word}</h3>
-                    <button className="vb-speaker-btn" onClick={() => handleSpeak(word)} title="播放發音">
-                      🔊
-                    </button>
+
+                    {/* CỤM HÀNH ĐỘNG XẾP THEO THỨ TỰ: NGHE -> SAO -> THÙNG RÁC */}
+                    <div className="vb-action-cluster">
+                      {/* 1. 🔊 Nút Phát âm */}
+                      <button className="vb-action-btn vb-speaker-btn" onClick={() => handleSpeak(word)} title="播放發音">
+                        🔊
+                      </button>
+
+                      {/* 2. ⭐ Nút Ngôi sao lưu trữ */}
+                      <button
+                        className="vb-action-btn vb-save-btn"
+                        onClick={() => onToggleSave && onToggleSave(item.id)}
+                        title={isSaved ? "取消收藏" : "加入收藏"}
+                      >
+                        {isSaved ? '⭐' : '☆'}
+                      </button>
+
+                      {/* 3. 🗑️ Nút Thùng rác xóa - ĐÃ LOẠI BỎ ĐIỀU KIỆN ITEM.ISCUSTOM */}
+                      {onDeleteWord && (
+                        <button
+                          className="vb-action-btn vb-delete-btn"
+                          onClick={() => {
+                            if (window.confirm(`確定要刪除單字 "${word}" 嗎？`)) {
+                              onDeleteWord(item.id);
+                            }
+                          }}
+                          title="刪除單字"
+                        >
+                          🗑️
+                        </button>
+                      )}
+                    </div>
                   </div>
+
                   <p className="vb-meaning-text">{getMeaningText(item)}</p>
                 </div>
 

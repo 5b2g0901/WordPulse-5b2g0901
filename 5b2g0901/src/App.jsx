@@ -97,6 +97,22 @@ function App() {
     });
   };
 
+  // --- HÀM XỬ LÝ XÓA TỪ VỰNG (THÙNG RÁC) ---
+  const handleDeleteWord = (wordId) => {
+    if (window.confirm('您確定要刪除這個單字嗎？(Bạn có chắc chắn muốn xóa từ này không?)')) {
+      // Xóa từ khỏi kho từ vựng chính
+      setVocabularyData(prev => prev.filter(item => item.id !== wordId));
+
+      // Đồng thời xóa khỏi danh sách đã lưu nếu có
+      setSavedWordIds(prev => prev.filter(id => id !== wordId));
+
+      // Nếu vị trí xem từ (diveIdx) vượt quá độ dài mới, reset về 0
+      if (diveIdx >= vocabularyData.length - 1) {
+        setDiveIdx(0);
+      }
+    }
+  };
+
   // --- HÀM XỬ LÝ THÊM TỪ VỰNG MỚI ---
   const handleAddNewWord = (e) => {
     e.preventDefault();
@@ -262,7 +278,7 @@ function App() {
     }
   };
 
-  // --- FIXED: Đã gộp và sửa triệt để lỗi trùng lặp hàm phân tích câu ---
+  // --- FIXED: Đã gộp và sửa triệt độ lỗi trùng lặp hàm phân tích câu ---
   const getSentenceAnalysis = (word) => {
     const analysisMap = {
       "Sibling": { structures: ["I have [quantity] siblings"], grammar: "名詞" },
@@ -614,7 +630,7 @@ function App() {
               borderBottom: '8px solid #cbd5e1',
               textAlign: 'center',
               boxSizing: 'border-box',
-              position: 'relative' // Để định vị nút ngôi sao
+              position: 'relative'
             }}>
 
               {/* ⭐ Ổ LƯU TRỮ NHỎ PHÍA TRÊN GIAO DIỆN DIVE */}
@@ -710,213 +726,127 @@ function App() {
         {/* 3. 🖼️ 單字庫 (Gallery View) */}
         {currentMode === 'gallery' && (
           <div>
+            {/* TRUYỀN THÊM HÀM onDeleteWord VÀO COMPONENT */}
             <VocabularyBank
               vocabularyData={vocabularyData}
               savedWordIds={savedWordIds}
               onToggleSave={toggleSaveWord}
+              onDeleteWord={handleDeleteWord}
             />
           </div>
         )}
 
-        {/* 3.5. ⭐ 收藏單字 (Favorites View) */}
+        {/* 4. ⭐ 收藏單字 */}
         {currentMode === 'favorites' && (
           <div>
-            <div style={{
-              background: 'linear-gradient(135deg, #FFFDEB 0%, #FEF3C7 100%)',
-              borderRadius: '24px',
-              padding: '24px 30px',
-              marginBottom: '28px',
-              border: '3px solid #F59E0B',
-              boxShadow: '0 8px 0 #D97706',
-              boxSizing: 'border-box'
-            }}>
-              <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '950', color: '#B45309', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                ⭐ 收藏單字清單 (Favorite Words)
-              </h2>
-            </div>
-
             <VocabularyBank
               vocabularyData={vocabularyData.filter(v => savedWordIds.includes(v.id))}
               savedWordIds={savedWordIds}
               onToggleSave={toggleSaveWord}
+              onDeleteWord={handleDeleteWord}
             />
           </div>
         )}
 
-        {/* 4. ⌨️ 拼字輸入 */}
+        {/* 5. ⌨️ 拼字輸入 */}
         {currentMode === 'typing' && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-            <div style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '32px',
-              padding: '40px 32px',
-              width: '100%',
-              maxWidth: '560px',
-              textAlign: 'center',
-              boxShadow: '0 10px 0 #cbd5e1',
-              boxSizing: 'border-box'
-            }}>
-              <div style={{ marginBottom: '24px' }}>
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginBottom: '8px' }}>
-                  <button
-                    type="button"
-                    onClick={handleGiveHint}
-                    style={{ backgroundColor: '#fee2e2', color: '#dc2626', padding: '8px 16px', borderRadius: '20px', fontWeight: '800', border: 'none', cursor: 'pointer' }}
-                  >
-                    💡 Suggest ({typingHintCount}/{vocabularyData[typingIdx]?.word.length})
-                  </button>
-                  <span style={{ backgroundColor: '#fef3c7', color: '#d97706', padding: '8px 16px', borderRadius: '20px', fontWeight: '800' }}>
-                    🔥 Score: {typingScore}
-                  </span>
-                </div>
-              </div>
-
-              <span style={{ display: 'block', fontSize: '11px', fontWeight: '900', color: '#94a3b8', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>
-                CHINESE MEANING
-              </span>
-              <h3 style={{ fontSize: '28px', fontWeight: '900', color: '#0f172a', margin: '0 0 28px 0' }}>
-                👉 {vocabularyData[typingIdx]?.meaningZh}
-              </h3>
-
-              <form
-                onSubmit={handleTypingSubmit}
-                style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '440px', margin: '0 auto' }}
-              >
-                <input
-                  type="text"
-                  value={typedInput}
-                  onChange={(e) => setTypedInput(e.target.value)}
-                  placeholder="在此輸入英文單字..."
-                  style={{
-                    width: '100%',
-                    padding: '16px',
-                    borderRadius: '20px',
-                    textAlign: 'center',
-                    fontWeight: '800',
-                    fontSize: '22px',
-                    border: '3px solid #38bdf8',
-                    outline: 'none',
-                    backgroundColor: '#f8fafc',
-                    boxSizing: 'border-box',
-                    transition: 'all 0.2s'
-                  }}
-                />
-                <button
-                  type="submit"
-                  style={{
-                    width: '100%',
-                    padding: '16px',
-                    backgroundColor: '#0284c7',
-                    color: '#ffffff',
-                    borderRadius: '20px',
-                    fontSize: '18px',
-                    fontWeight: '900',
-                    border: 'none',
-                    boxShadow: '0 5px 0 #0369a1',
-                    cursor: 'pointer',
-                    transition: 'transform 0.1s'
-                  }}
-                  onMouseDown={(e) => e.currentTarget.style.transform = 'translateY(3px)'}
-                  onMouseUp={(e) => e.currentTarget.style.transform = 'none'}
-                >
-                  送出答案 🚀
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* 5. 🎧 聽力訓練 */}
-        {currentMode === 'listening' && (
-          <ListeningQuiz
+          <SpeedTyping
             vocabularyData={vocabularyData}
-            speechRate={speechRate}
-            setSpeechRate={setSpeechRate}
+            typingIdx={typingIdx}
+            setTypingIdx={setTypingIdx}
+            typedInput={typedInput}
+            setTypedInput={setTypedInput}
+            typingStatus={typingStatus}
+            typingScore={typingScore}
+            handleTypingSubmit={handleTypingSubmit}
+            handleGiveHint={handleGiveHint}
             handleSpeak={handleSpeak}
           />
         )}
 
-        {/* 6. 🧠 CORE QUIZ */}
-        {currentMode === 'quiz' && stageQuestions.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', padding: '12px 0' }}>
-            {!isQuizFinished ? (
-              <div style={{ backgroundColor: '#ffffff', borderRadius: '32px', padding: '40px 32px', width: '100%', maxWidth: '580px', boxShadow: '0 24px 48px rgba(15, 23, 42, 0.12)', border: '3.5px solid #1e293b', boxSizing: 'border-box' }}>
+        {/* 6. 🎧 聽力訓練 */}
+        {currentMode === 'listening' && (
+          <ListeningQuiz
+            vocabularyData={vocabularyData}
+            handleSpeak={handleSpeak}
+            speechRate={speechRate}
+            setSpeechRate={setSpeechRate}
+          />
+        )}
 
-                <div style={{ marginBottom: '28px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '6px 14px', borderRadius: '14px', fontSize: '14px', fontWeight: '900', border: '2.5px solid #1e293b' }}>
-                      🎯 Question {quizIdx + 1}/10
-                    </span>
-                    <span style={{ backgroundColor: '#fffbeb', color: '#b45309', padding: '6px 14px', borderRadius: '14px', fontSize: '14px', fontWeight: '900', border: '2.5px solid #1e293b' }}>
-                      ⭐ Score: {quizScore}
-                    </span>
+        {/* 7. 🧠 核心測驗 */}
+        {currentMode === 'quiz' && (
+          <div className="qz-wrapper w-full flex flex-col items-center">
+            <div className="w-full max-w-2xl bg-slate-100 p-6 rounded-2xl border-4 border-slate-800 shadow-[0_6px_0_#1e293b]">
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-sm font-black text-slate-700">階段 {quizStage} / 核心測驗</span>
+                <span className="text-sm font-black bg-yellow-300 px-3 py-1 rounded-full border-2 border-slate-800">得分: {quizScore}</span>
+              </div>
+
+              {!isQuizFinished ? (
+                <div>
+                  <div className="mb-4 bg-white p-2 rounded-lg border-2 border-slate-300 flex justify-between">
+                    <span className="font-bold text-xs text-slate-500">進度: {quizIdx + 1} / 10</span>
+                    <span className="font-bold text-xs text-sky-600">提示: 請選出正確的英文單字</span>
                   </div>
 
-                  <div style={{ width: '100%', height: '14px', backgroundColor: '#e2e8f0', borderRadius: '12px', border: '2.5px solid #1e293b', overflow: 'hidden' }}>
-                    <div style={{ width: `${((quizIdx + 1) / 10) * 100}%`, height: '100%', backgroundColor: '#38bdf8', transition: 'width 0.3s ease-out' }} />
+                  <div className="quiz-question-box bg-white p-8 rounded-xl border-4 border-slate-800 shadow-[0_4px_0_#1e293b] mb-6 text-center">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">中文題目</p>
+                    <h3 className="text-3xl font-black text-slate-800">{stageQuestions[quizIdx]?.meaningZh}</h3>
+                    {stageQuestions[quizIdx]?.example && (
+                      <p className="text-xs text-slate-500 mt-3 italic bg-slate-50 p-2 rounded border border-dashed border-slate-300">
+                        例句提示: {stageQuestions[quizIdx]?.example.replace(new RegExp(stageQuestions[quizIdx]?.word, 'gi'), '_____')}
+                      </p>
+                    )}
                   </div>
-                </div>
 
-                <div style={{ backgroundColor: '#f8fafc', border: '2.5px solid #1e293b', borderRadius: '24px', padding: '28px 20px', textAlign: 'center', marginBottom: '28px', boxShadow: '0 6px 0px #e2e8f0', minHeight: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-                  <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8', letterSpacing: '1.5px', textTransform: 'uppercase', display: 'block', marginBottom: '12px' }}>
-                    HOW DO YOU SAY THIS IN ENGLISH?
-                  </span>
-                  <h3 style={{ fontSize: '24px', fontWeight: '900', color: '#1e293b', margin: 0 }}>
-                    {stageQuestions[quizIdx]?.meaningZh}
-                  </h3>
-                </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {quizOptions.map((opt, i) => {
+                      const optText = typeof opt === 'object' ? opt?.word : opt;
+                      const correctText = stageQuestions[quizIdx]?.word;
+                      let btnStyle = "bg-white text-slate-800 border-slate-800 hover:bg-slate-50";
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                  {quizOptions.map((option, idx) => {
-                    const optionText = typeof option === 'object' ? option?.word : option;
-                    const correctText = stageQuestions[quizIdx]?.word;
-                    const isSelected = selectedAnswer === option;
-                    const isCorrectAnswer = optionText === correctText;
-
-                    let btnBg = '#ffffff';
-                    let btnColor = '#1e293b';
-                    let borderCol = '#1e293b';
-
-                    if (selectedAnswer !== null) {
-                      if (isCorrectAnswer) {
-                        btnBg = '#bbf7d0';
-                        btnColor = '#166534';
-                        borderCol = '#166534';
-                      } else if (isSelected) {
-                        btnBg = '#fecaca';
-                        btnColor = '#991b1b';
-                        borderCol = '#991b1b';
+                      if (selectedAnswer !== null) {
+                        if (optText === correctText) {
+                          btnStyle = "bg-green-400 text-slate-900 border-slate-800 scale-[1.02]";
+                        } else if (selectedAnswer === opt) {
+                          btnStyle = "bg-red-400 text-slate-900 border-slate-800 opacity-90";
+                        } else {
+                          btnStyle = "bg-white text-slate-400 border-slate-200 opacity-50 pointer-events-none";
+                        }
                       }
-                    }
 
-                    return (
-                      <button
-                        key={idx}
-                        onClick={() => handleSelectQuizAnswer(option)}
-                        style={{
-                          width: '100%', padding: '16px 20px', backgroundColor: btnBg, color: btnColor,
-                          borderRadius: '16px', border: `2.5px solid ${borderCol}`, fontSize: '16px', fontWeight: '800',
-                          textAlign: 'left', cursor: selectedAnswer !== null ? 'default' : 'pointer', transition: 'all 0.15s',
-                          boxShadow: selectedAnswer !== null && isSelected ? 'none' : '0 4px 0 #1e293b'
-                        }}
-                      >
-                        {optionText}
-                      </button>
-                    );
-                  })}
+                      return (
+                        <button
+                          key={i}
+                          disabled={selectedAnswer !== null}
+                          onClick={() => handleSelectQuizAnswer(opt)}
+                          className={`w-full py-4 px-6 rounded-xl border-3 font-black text-lg transition-all shadow-[0_4px_0_#1e293b] active:translate-y-1 active:shadow-none text-left flex justify-between items-center ${btnStyle}`}
+                        >
+                          <span>{i + 1}. {optText}</span>
+                          {selectedAnswer !== null && optText === correctText && <span>✅</span>}
+                          {selectedAnswer === opt && optText !== correctText && <span>❌</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div style={{ backgroundColor: '#ffffff', borderRadius: '32px', padding: '40px 32px', width: '100%', maxWidth: '480px', textAlign: 'center', border: '3.5px solid #1e293b' }}>
-                <h2>🎉 Stage {quizStage} Completed!</h2>
-                <p>Final Score: {quizScore}/100</p>
-                <button onClick={() => initNewStage(quizStage + 1)} style={{ padding: '12px 24px', backgroundColor: '#38bdf8', borderRadius: '12px', fontWeight: '900', border: '2.5px solid #1e293b', cursor: 'pointer' }}>Next Stage 🚀</button>
-              </div>
-            )}
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-6xl mb-4">🏆</div>
+                  <h3 className="text-2xl font-black text-slate-800 mb-2">測驗完成！</h3>
+                  <p className="text-lg font-bold text-slate-600 mb-6">您在本階段獲得了 <span className="text-xl text-sky-600 font-extrabold">{quizScore}</span> 分！</p>
+                  <div className="flex flex-wrap justify-center gap-4">
+                    <button onClick={() => initNewStage(1)} className="py-3 px-6 bg-sky-400 font-black rounded-xl border-3 border-slate-800 shadow-[0_4px_0_#1e293b]">再試一次 🔄</button>
+                    <button onClick={() => initNewStage(quizStage + 1)} className="py-3 px-6 bg-emerald-400 font-black rounded-xl border-3 border-slate-800 shadow-[0_4px_0_#1e293b]">下一階段 🚀</button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
-        {/* 7. 🧩 連連看 */}
+        {/* 8. 🧩 連連看 */}
         {currentMode === 'game' && (
           <BlockBlast
             gameBlocks={gameBlocks}
@@ -928,13 +858,18 @@ function App() {
           />
         )}
 
-        {/* 8. 👤 個人簡介 */}
+        {/* 9. 👤 個人簡介 */}
         {currentMode === 'profile' && <UserProfile />}
 
-        {/* 9. 📚 本學期課程 */}
+        {/* 10. 📚 本學期課程 */}
         {currentMode === 'syllabus' && <CourseSyllabus />}
 
       </main>
+
+      {/* FOOTER CREDITS */}
+      <footer className="max-w-5xl mx-auto text-center mt-12 text-xs font-bold text-sky-700 uppercase tracking-widest">
+        WordPulse System v4.2 • Responsive App Architecture • 國立臺南創新技術學院 🦊
+      </footer>
     </div>
   );
 }
