@@ -5,7 +5,6 @@ import SpeedTyping from './components/SpeedTyping';
 import BlockBlast from './components/BlockBlast';
 import ListeningQuiz from './components/ListeningQuiz'; 
 import UserProfile from './components/UserProfile';
-import CourseSyllabus from './components/CourseSyllabus';
 import Flashcard from './components/Flashcard'; 
 import VocabularyBank from './components/VocabularyBank';
 import SavedWords from './components/SavedWords';
@@ -481,8 +480,8 @@ function App() {
             { id: 'listening', label: '🎧 聽力訓練' },
             { id: 'quiz', label: '🧠 核心測驗' },
             { id: 'game', label: '🧩 連連看' },
-            { id: 'profile', label: '👤 個人簡介' },
-            { id: 'syllabus', label: '📚 本學期課程' }
+            { id: 'profile', label: '👤 個人簡介' }
+           
           ].map((nav, index, arr) => {
             const isActive = currentMode === nav.id;
             return (
@@ -988,8 +987,7 @@ function App() {
         {/* 9. 👤 個人簡介 */}
         {currentMode === 'profile' && <UserProfile />}
 
-        {/* 10. 📚 本學期課程 */}
-        {currentMode === 'syllabus' && <CourseSyllabus />}
+        
 
       </main>
     </div>
