@@ -10,7 +10,7 @@ import VocabularyBank from './components/VocabularyBank';
 import SavedWords from './components/SavedWords';
 
 function App() {
-  const [currentMode, setCurrentMode] = useState('syllabus'); 
+  const [currentMode, setCurrentMode] = useState('profile'); 
   const [userNotes, setUserNotes] = useState({});
   const [activeNoteText, setActiveNoteText] = useState('');
 
